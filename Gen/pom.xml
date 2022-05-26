@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>miguel.perou.springBootDemo</artifactId>
+        <groupId>com.infosys.dummy</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.infosys.dummy.gen</groupId>
+    <artifactId>Gen</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.1</version>
+        </dependency>
+
+        <!-- This includes Hibernate validation -->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-jersey</artifactId>-->
+<!--        </dependency>-->
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <!-- RELEASE_VERSION -->
+                <version>5.1.0</version>
+                <!-- /RELEASE_VERSION -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <!--See https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin -->
+                            <inputSpec>${project.basedir}/SpringBootDemo.openApi.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <groupId>infosys.dummy</groupId>
+                            <artifactId>pizzeria</artifactId>
+                            <artifactVersion>2.0</artifactVersion>
+                            <library>spring-boot</library>
+                            <apiPackage>com.infosys.dummy.api</apiPackage>
+                            <invokerPackage>com.infosys.dummy</invokerPackage>
+                            <modelPackage>com.infosys.dummy.model</modelPackage>
+                            <!-- <strictSpec>true</strictSpec>&lt;!&ndash; (Does nothing detectable) &ndash;&gt; -->
+                            <configOptions>
+                                <!--See https://github.com/OpenAPITools/openapi-generator/blob/master/docs/generators/spring.md -->
+                                <sourceFolder>src/main/java</sourceFolder>
+                                <bigDecimalAsString>true</bigDecimalAsString>
+                                <dateLibrary>java8</dateLibrary>
+                                <interfaceOnly>true</interfaceOnly>
+                                <library>spring-boot</library>
+                                <developerName>Miguel Muñoz</developerName>
+                                <developerEmail>miguel.perou@infosys.com</developerEmail>
+                                <!--
+                                It may be possible to use the x-field-extra-annotation tag in the .yaml file to
+                                get spring to return useful error messages, but I'm skeptical that it would work
+                                or be easy to use. It's documented on the same page as the rest of the configOptions,
+                                and its use is illustrated at https://stackoverflow.com/questions/54537046/how-to-generate-swagger-codegen-java-models-as-jpa-entities
+                                -->
+
+                                <!--
+                                There may be an awkward but reliable way to get error messages, as described in
+                                one answer to this question:
+                                https://stackoverflow.com/questions/33663801/how-do-i-customize-default-error-message-from-spring-valid-validation/33664636#33664636
+                                -->
+
+                                <!-- These do nothing detectable -->
+                                <!-- <performBeanValidation>true</performBeanValidation> -->
+                                <!-- <useBeanValidation>true</useBeanValidation> -->
+                                <!-- <disallowAdditionalPropertiesIfNotPresent>false</disallowAdditionalPropertiesIfNotPresent> -->
+
+                                <!-- We don't want these: -->
+                                <!-- <openApiNullable>false</openApiNullable> &lt;!&ndash; (includes #import ...JsonNullable) &ndash;&gt; -->
+                                <!-- <returnSuccessCode>true</returnSuccessCode> -->
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

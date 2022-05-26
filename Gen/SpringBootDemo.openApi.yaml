@@ -1,0 +1,276 @@
+openapi: 3.0.0
+info:
+  description: System to keep track of avail restaurant menu items
+  version: 1.0.0
+  title: Customer Orders API
+  contact:
+    email: SwingGuy1024@yahoo.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+# See https://stackoverflow.com/questions/62044747/message-field-is-empty-in-error-response-spring-boot
+#servers:
+#  - url: http://localhost:27777/demo/
+#    description: Basic server
+
+#server:
+#  error:
+#    include-message: always
+#    include-binding-errors: always
+paths:
+  /menuItem:
+    get:
+      summary: Get all menu items.
+      description: |
+        Retrieve all menu items
+      operationId: getAll
+      responses:
+        200:
+          description: Found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MenuItemDto'
+  /menuItem/{id}:
+    get:
+      summary: Gets a menuItem by ID
+      description: Gets a MenuItem by its ID.
+      operationId: getMenuItem
+      parameters:
+        - in: path
+          name: id
+          description: ID of menuItem to find
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItemDto'
+        404:
+          description: NotFound
+  /admin/menuItem/add:
+    put:
+      summary: Add a MenuItem, with optional MenuItemOptions.
+      description: |
+        Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to 
+        specific MenuItems, they are created, updated, and removed by using the MenuItem API. More options may be 
+        added later with the /MenuItem/addOption/ API.
+      operationId: addMenuItem
+      requestBody:
+        description: Complete MenuItem, with MenuItemOptions
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemDto'
+        required: true
+      responses:
+        201:
+          description: Menu Item Created
+          content:
+            text/plain:
+              schema:
+                type: string
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden
+        417:
+          description: Token Expired
+  /admin/menuItem/addOption/{menuItemId}:
+    post:
+      summary: Add a menuItemOption
+      description: |
+        Add an existing MenuItemOption to a MenuItem.
+      operationId: addMenuItemOption
+      parameters:
+        - in: path
+          name: menuItemId
+          required: true
+          description: ID of the MenuItem getting the new option
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: MenuItemOption
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemOptionDto'
+      responses:
+        201:
+          description: MenuItemOption added
+          content:
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+        417:
+          description: Token Expired
+  /admin/menuItem/addOption:
+    put:
+      summary: Add a MenuItemOption
+      description: Add a new MenuItemOption
+      operationId: addNewMenuItemOption
+      requestBody:
+        description: MenuItemOption
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemOptionDto'
+        required: true
+      responses:
+        201:
+          description: Menu Item Option Created
+          content:
+            text/plain:
+              schema:
+                type: string
+        417:
+          description: Token Expired
+  /admin/menuItem/addOption/{menuId}/{optionId}:
+    post:
+      summary: Add an existing MenuItemOption to an existing Menu Item.
+      operationId: addOptionToMenuItem
+      parameters:
+        - in: path
+          name: menuId
+          required: true
+          description: The id of the existing MenuItem
+          schema:
+            type: integer
+            format: int32
+        - in: path
+          name: optionId
+          required: true
+          description: The id of the existing MenuItemOption
+          schema:
+            type: integer
+            format: int32
+      responses:
+        201:
+          description: MenuItemOption added to MenuItem
+        400:
+          description: Bad Request
+        404:
+          description: MenuItem or MenuItemOption Not Found
+
+  /admin/menuItem/deleteOption/{optionId}:
+    delete:
+      summary: Delete a MenuItemOption
+      description: Delete a MenuItemOption from a MenuItem.
+      operationId: deleteOption
+      parameters:
+        - in: path
+          name: optionId
+          required: true
+          description: ID of the MenuItemOpton to delete
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: MenuItemOption deleted
+        400:
+          description: Bad Request
+        417:
+          description: Token Expired
+
+security:
+  - bearerAuth: [ ]
+components:
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    MenuItemDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        itemPrice:
+          type: number
+          description: Price. (BigDecimal)
+        allowedOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItemOptionDto'
+      required:
+        - name
+        - itemPrice
+    MenuItemOptionDto:
+      type: object
+      description: Option for a MenuItem
+      properties:
+        name:
+          type: string
+        deltaPrice:
+          type: number
+          description: Floating point price. Strings are easier to work with.
+        id:
+          type: integer
+          format: int32
+      required:
+        - name
+        - deltaPrice
+    OrderNodeDto:
+      properties:
+        id:
+          type: integer
+          format: int32
+        orderId:
+          type: integer
+          format: int32
+        parentTree:
+          $ref: '#/components/schemas/OrderNodeDto'
+        menuItemId:
+          type: integer
+          format: int32
+        intBlank:
+          type: integer
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderNodeDto'
+          # Note on numbers:
+          #   type    format
+          #   ----    ------
+          #   integer int32     gives Integer
+          #   integer int64     gives Long
+          #   number            gives BigDecimal - Use this one for BigDecimal
+          #   number  int32     gives BigDecimal
+          #   number  int64     gives BigDecimal
+          #   number  number    gives BigDecimal
+          #   number  double    gives Double
+          #   number  float     gives Float
+          #   string            gives String
+          #   string  byte      gives byte[] (base64 encoded characters)
+          #   string  binary    gives File
+          #   string  date      gives LocalDate
+          #   string  date-time gives OffsetDateTime
+          #   string  time      gives String
+          #   string  password  gives String
+          #   boolean           gives Boolean
+          # Undocumented:
+          #   integer byte      gives Integer
+          #   integer binary    gives Integer
+          #   integer date      gives Integer
+          #   integer decimal   gives Integer
+          #   number  decimal   gives BigDecimal
+          #   number  binary    gives BigDecimal
+          #   string  int32     gives String
+          #   string  int64     gives String
+          # I don't know how to get BigInteger.
