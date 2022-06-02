@@ -38,7 +38,6 @@ public class GlobalResponseExceptionHandler
     return handleExceptionInternal(ex, responseBody.toString(), new HttpHeaders(), responseException.getHttpStatus(), request);
   }
 
-  @SuppressWarnings("unused")
   private static class ResponseBody {
     private final String timestamp;
     private final int status;
@@ -54,6 +53,14 @@ public class GlobalResponseExceptionHandler
       this.message = responseException.getMessage();
       this.status = responseException.getStatusCode();
       this.error = responseException.getErrorName();
+      this.timestamp = formatter.format(OffsetDateTime.now(utcZone));
+      this.path = getPath(webRequest);
+    }
+
+    ResponseBody(Throwable throwable), HttpStatus status, WebRequest webRequest) {
+      this.message = throwable.getMessage();
+      this.status = status.value();
+      this.error = status.getReasonPhrase();
       this.timestamp = formatter.format(OffsetDateTime.now(utcZone));
       this.path = getPath(webRequest);
     }
@@ -97,5 +104,20 @@ public class GlobalResponseExceptionHandler
         throw new RuntimeException(e); // Shouldn't happen
       }
     }
+  }
+
+  /**
+   * This class gives me useful (but wordy) error messages when the Spring Server code rejects an invalid DTO before
+   * it even reaches my code. Without this, these errors return no error message at all.
+   * @param ex The exception
+   */
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+      MethodArgumentNotValidException ex,
+      HttpHeaders headers,
+      HttpStatus status,
+      WebRequest request
+  ) {
+    return new ResponseEntity<>(new ResponseBody(ex, status, request).toString(), headers, status);
   }
 }
