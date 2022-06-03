@@ -108,22 +108,20 @@ public enum ResponseUtility {
     try {
       return new ResponseEntity<>(method.get(), successStatus);
     } catch (ResponseException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(e.getMessage(), e);
-      } else if (log.isWarnEnabled()) {
-        log.warn(e.getMessage());
-      }
-      throw e; // Generates a 500 - Bad Request
-    } catch (ValidationException | NumberFormatException ve) {
-      if (log.isErrorEnabled()) {
-        log.error(ve.getMessage(), ve);
-      }
-      throw new BadRequest400Exception(ve);
+      // I used to log exceptions and error messages here, but now that gets done by the GlobalResponseExceptionHandler.
+      // This block, which seems to do nothing, prevents the exception from getting handled as a RuntimeException, 
+      // which generates a status code of 500.
+      throw e;
+      
+      // In this next block, add any exceptions that may get thrown by methods we call, which are due to bad input data. 
+      // For example, ValidationExceptions and NumberFormat exceptions are both bad input. If you run into any ore,
+      // add them here. 
+    } catch (ValidationException | NumberFormatException ex) { // Add any exception for status < 500
+      log.error("Bad Request", ex);
+      throw new BadRequest400Exception(ex);
     } catch (RuntimeException re) {
-      // RuntimeExceptions generate a 500 response.
-      if (log.isErrorEnabled()) {
-        log.error(re.getMessage(), re);
-      }
+      // RuntimeExceptions that aren't handled above generate a 500 response.
+      log.error("Internal Error", re);
       throw new InternalError500Exception(re);
     }
   }
