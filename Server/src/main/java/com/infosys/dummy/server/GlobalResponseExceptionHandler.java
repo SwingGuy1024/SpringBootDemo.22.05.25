@@ -25,19 +25,75 @@ import java.time.format.DateTimeFormatter;
  *
  * @author Miguel Mu\u00f1oz
  */
+@SuppressWarnings("unused") // Some of these get called only by the Spring framework, the IDE will think they're unused.
 @ControllerAdvice
 public class GlobalResponseExceptionHandler
     extends ResponseEntityExceptionHandler {
   private static final Logger log = LoggerFactory.getLogger(GlobalResponseExceptionHandler.class);
+  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
 
+  private final ZoneId zoneId;
+
+  @Autowired
+  public GlobalResponseExceptionHandler(ApplicationContext applicationContext) {
+    this.zoneId = getZone(applicationContext);
+  }
+
+  @NotNull
+  private static ZoneId getZone(ApplicationContext context) {
+    String zone = context.getEnvironment().getProperty("infosys.utcZone");
+    if (zone !- null) {
+      try {
+        return ZoneId.of(zone);
+      } catch (RuntimeException e) {
+        log.warn("Unknown Zone: {} Use a zoneId specified in {}", zone, ZoneId.class);
+      }
+    }
+    return ZoneId.systemDefault();
+  }
+
+  /**
+   * This method fills in a ResponseBody when a ResponseException is thrown. It also logs any caught exceptions.
+   * It gets called by the SpringFramework.
+   *
+   */
   @ExceptionHandler(ResponseException.class)
   protected ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
+    log.warn(ex.getMessage(), ex);
     ResponseException responseException = (ResponseException) ex;
     ResponseBody responseBody = new ResponseBody(responseException, request);
-    log.debug(responseBody.toString());
     return handleExceptionInternal(ex, responseBody.toString(), new HttpHeaders(), responseException.getHttpStatus(), request);
   }
 
+  /**
+   * This method gives me useful (but wordy) error messages when the Spring Server code rejects an invalid DTO before
+   * it even reaches my code. Without this, these errors return no error message at all.
+   * @return A ResponseEntity with a proper error message.
+   */
+  @Override
+  protected @NotNull ResponseEntity<Object> handle MethodArgumentNotValid(
+      @NotNull MethodArgumentNotValidException ex,
+      @NotNull HttpHeaders headers,
+      @NotNull HttpStatus status,
+      @NotNull WebRequest request
+  ) {
+    ResponseBody responseBody = new ResponseBody(ex, status, request);
+    String bodyAsString = responseBody.toString();
+    return new ResponseEntity<>(bodyAsString, headers, status);
+  }
+
+  private static String extractPath(final WebRequest webRequest) {
+    NativeWebRequest nativeWebRequest = (NativeWebRequest) webRequest;
+    final HttpServletRequest httpServletRequest = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
+    if (httpServletRequest != null) {
+      return httpServletRequest.getRequestURI();
+    }
+    //noinspection HardCodedStringLiteral
+    return "(unknown)"; // Shouldn't happen
+  }
+
+  @SuppressWarnings("unused")
   private static class ResponseBody {
     private final String timestamp;
     private final int status;
@@ -45,34 +101,21 @@ public class GlobalResponseExceptionHandler
     private final String message;
     private final String path;
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
-    private static final ZoneId utcZone = ZoneId.of("Etc/Universal");
+    ResponseBody(ResponseException responseException, WebRequest webRequest) {
+      this(responseException, responseException.getHttpStatus(), webRequest);
+    }
 
     ResponseBody(ResponseException responseException, WebRequest webRequest) {
       this.message = responseException.getMessage();
       this.status = responseException.getStatusCode();
       this.error = responseException.getErrorName();
-      this.timestamp = formatter.format(OffsetDateTime.now(utcZone));
+      this.timestamp = createTimestamp();
       this.path = getPath(webRequest);
     }
 
-    ResponseBody(Throwable throwable), HttpStatus status, WebRequest webRequest) {
-      this.message = throwable.getMessage();
-      this.status = status.value();
-      this.error = status.getReasonPhrase();
-      this.timestamp = formatter.format(OffsetDateTime.now(utcZone));
-      this.path = getPath(webRequest);
-    }
-
-    private static String getPath(final WebRequest webRequest) {
-      NativeWebRequest nativeWebRequest = (NativeWebRequest) webRequest;
-      final HttpServletRequest httpServletRequest = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
-      if (httpServletRequest != null) {
-        return httpServletRequest.getRequestURI();
-      }
-      //noinspection HardCodedStringLiteral
-      return "(unknown)"; // Shouldn't happen
+    @NotNull
+    private String createTimeStamp() {
+      return formatter.format(OffsetDateTime.now(zoneId));
     }
 
     public String getTimestamp() {
@@ -104,20 +147,5 @@ public class GlobalResponseExceptionHandler
         throw new RuntimeException(e); // Shouldn't happen
       }
     }
-  }
-
-  /**
-   * This class gives me useful (but wordy) error messages when the Spring Server code rejects an invalid DTO before
-   * it even reaches my code. Without this, these errors return no error message at all.
-   * @param ex The exception
-   */
-  @Override
-  protected ResponseEntity<Object> handleMethodArgumentNotValid(
-      MethodArgumentNotValidException ex,
-      HttpHeaders headers,
-      HttpStatus status,
-      WebRequest request
-  ) {
-    return new ResponseEntity<>(new ResponseBody(ex, status, request).toString(), headers, status);
   }
 }
