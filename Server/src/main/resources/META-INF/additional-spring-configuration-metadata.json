@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "my-app.zoneId",
+      "type": "java.lang.String",
+      "description": "ZoneId, from java.time.ZoneId.getAvailableZoneIds(), used to generate the timestamp for error responses."
+  }
+] }

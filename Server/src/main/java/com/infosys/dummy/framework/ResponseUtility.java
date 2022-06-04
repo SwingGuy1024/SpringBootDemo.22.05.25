@@ -117,7 +117,6 @@ public enum ResponseUtility {
       // For example, ValidationExceptions and NumberFormat exceptions are both bad input. If you run into any ore,
       // add them here. 
     } catch (ValidationException | NumberFormatException ex) { // Add any exception for status < 500
-      log.error("Bad Request", ex);
       throw new BadRequest400Exception(ex);
     } catch (RuntimeException re) {
       // RuntimeExceptions that aren't handled above generate a 500 response.

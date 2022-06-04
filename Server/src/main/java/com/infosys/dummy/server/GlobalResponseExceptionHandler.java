@@ -24,6 +24,28 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
+ * Adds a body to all error responses. Also logs messages. The body is a JSON object with five fields:
+ * <pre>
+ * {
+ *   "timestamp" : "2022-06-03T10:46:31.387269-07:00",
+ *   "status" : 400,
+ *   "error" : "Bad Request",
+ *   "message" : "Non null field ID = 44 -- Code: 400 BAD_REQUEST Bad Request",
+ *   "path" : "/demo/admin/menuItem/addOption/"
+ * }
+ * </pre>
+ * 
+ * Logs ResponseExceptions at Info, without a stack trace.
+ * Logs other RuntimeExceptions at Error, with a stack trace.
+ * The time zone used in generating the timestamp is the system default time zone, but may be changes setting the
+ * my-app.zoneId property to a ZoneId value in application.properties:
+ * <pre>
+ *   # Property value taken from java.time.ZoneId.getAvailableZoneIds()
+ *   my-app.zoneId=America/Argentina/Buenos_Aires
+ * </pre>
+ * 
+ * Time zones include {@code SHORT_IDS} declared in java.time.ZoneId, but are not limited to those. 
+ * Call {@code ZoneId.getAvailableZoneIds()} for a comprehensive list.
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 2/15/21
  * <p>Time: 8:12 AM
@@ -37,6 +59,10 @@ public class GlobalResponseExceptionHandler
   private static final Logger log = LoggerFactory.getLogger(GlobalResponseExceptionHandler.class);
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
+  
+  // TODO: Set up ConfigurationProperties
+  // todo  https://docs.spring.io/spring-boot/docs/2.4.1/reference/html/appendix-configuration-metadata.html#configuration-metadata-annotation-processor
+  private static final String ZONE_ID_PROPERTY = "my-app.zoneId";
 
   private final ZoneId zoneId;
 
@@ -47,12 +73,12 @@ public class GlobalResponseExceptionHandler
 
   @NotNull
   private static ZoneId getZone(ApplicationContext context) {
-    String zone = context.getEnvironment().getProperty("my-app.zoneId");
+    String zone = context.getEnvironment().getProperty(ZONE_ID_PROPERTY);
     if (zone != null) {
       try {
-        return ZoneId.of(zone);
+        return ZoneId.of(zone, ZoneId.SHORT_IDS);
       } catch (RuntimeException e) {
-        log.warn("Unknown Zone: {} Use a zoneId specified in {}", zone, ZoneId.class);
+        log.warn("Unknown Zone: {} -- Use a zoneId from {}.getAvailableZoneIds()", zone, ZoneId.class);
       }
     }
     return ZoneId.systemDefault();
@@ -66,7 +92,7 @@ public class GlobalResponseExceptionHandler
    * @return A ResponseEntity with a useful error message.
    */
   @ExceptionHandler(ResponseException.class)
-  protected ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
+  protected ResponseEntity<Object> handleResponseException(RuntimeException ex, WebRequest request) {
     logStandardMessage(ex, request);
     ResponseException responseException = (ResponseException) ex;
     String body = new ResponseBody(responseException, request).toString();
@@ -90,9 +116,7 @@ public class GlobalResponseExceptionHandler
       @NotNull WebRequest request
   ) {
     logStandardMessage(ex, request);
-    ResponseBody responseBody = new ResponseBody(ex, status, request);
-    String bodyAsString = responseBody.toString();
-    return new ResponseEntity<>(bodyAsString, headers, status);
+    return handleExceptionInternal(ex, ex.getBindingResult(), headers, status, request);
   }
 
   private static String extractPath(final WebRequest webRequest) {
