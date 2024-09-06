@@ -1,6 +1,6 @@
 package com.infosys.dummy.api;
 
-import com.infosys.dummy.engine.DataEngine;
+import com.infosys.dummy.framework.engine.DataEngine;
 import com.infosys.dummy.model.MenuItemDto;
 import com.infosys.dummy.model.MenuItemOptionDto;
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ import javax.validation.Valid;
 import java.util.Optional;
 
 import static com.infosys.dummy.framework.ResponseUtility.serveCreatedEntity;
-import static com.infosys.dummy.framework.ResponseUtility.serveOK;
+import static com.infosys.dummy.framework.ResponseUtility.serveEmptyOK;
 
 @RestController
 @RequestMapping("${openapi.customerOrders.base-path:}")
@@ -63,12 +63,12 @@ public class AdminApiController implements AdminApi {
     }
 
     @Override
-    public ResponseEntity<Void> deleteOption(final Integer optionId) {
-        return serveOK(() -> dataEngine.deleteById(optionId));
+    public ResponseEntity<String> deleteOption(final Integer optionId) {
+        return serveEmptyOK(() -> dataEngine.deleteOptionById(optionId));
     }
 
     @Override
-    public ResponseEntity<Void> addOptionToMenuItem(Integer menuId, Integer optionId) {
-        return serveOK(() -> dataEngine.addOptionToItem(optionId, menuId));
+    public ResponseEntity<String> addOptionToMenuItem(Integer menuId, Integer optionId) {
+        return serveEmptyOK(() -> dataEngine.addOptionToItem(optionId, menuId));
     }
 }

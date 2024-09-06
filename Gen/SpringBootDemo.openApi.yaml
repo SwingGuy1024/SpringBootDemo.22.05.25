@@ -158,6 +158,10 @@ paths:
       responses:
         201:
           description: MenuItemOption added to MenuItem
+          content:
+            text/plain:
+              schema:
+                type: string
         400:
           description: Bad Request
         404:
@@ -179,6 +183,11 @@ paths:
       responses:
         200:
           description: MenuItemOption deleted
+          # We should try these as integers, since that's what we're actually returning.
+          content:
+            text/plain:
+              schema:
+                type: string
         400:
           description: Bad Request
         417:
@@ -187,11 +196,11 @@ paths:
 security:
   - bearerAuth: [ ]
 components:
-  securitySchemes:
-    bearerAuth: # arbitrary name for the security scheme
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+#  securitySchemes:
+#    bearerAuth: # arbitrary name for the security scheme
+#      type: http
+#      scheme: bearer
+#      bearerFormat: JWT
   schemas:
     MenuItemDto:
       type: object

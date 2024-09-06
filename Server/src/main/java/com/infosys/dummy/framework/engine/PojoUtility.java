@@ -1,4 +1,4 @@
-package com.infosys.dummy.engine;
+package com.infosys.dummy.framework.engine;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,10 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.persistence.Entity;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * By convention, most methods that may throw a ResponseException begin with the word confirm
@@ -96,7 +94,7 @@ public enum PojoUtility {
     // which makes our code cleaner.
     return repository
         .findById(id)
-        .orElseThrow(() -> new NotFound404Exception(String.format("Missing object with %s", id)));
+        .orElseThrow(() -> new NotFound404Exception(String.format("Missing object with id %s", id)));
   }
 
   /**

@@ -1,17 +1,19 @@
 package com.infosys.dummy.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infosys.dummy.ServerMaster;
-import com.infosys.dummy.engine.DataEngine;
 import com.infosys.dummy.entity.MenuItem;
 import com.infosys.dummy.entity.MenuItemOption;
+import com.infosys.dummy.framework.engine.DataEngine;
+import com.infosys.dummy.framework.engine.MenuItemOptionTestRepository;
+import com.infosys.dummy.framework.engine.MenuItemTestRepository;
 import com.infosys.dummy.model.MenuItemDto;
 import com.infosys.dummy.model.MenuItemOptionDto;
-import com.infosys.dummy.repository.MenuItemOptionRepository;
-import com.infosys.dummy.repository.MenuItemRepository;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -29,8 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * <p>Created by IntelliJ IDEA.
@@ -58,20 +60,40 @@ public class IntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(IntegrationTest.class);
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  @Autowired
-  private MenuItemRepository menuItemRepository;
+  static {
+    objectMapper.setDefaultPrettyPrinter(new DefaultPrettyPrinter());
+  }
 
   @Autowired
-  private MenuItemOptionRepository menuItemOptionRepository;
+  private MenuItemTestRepository menuItemRepository;
+
+  @Autowired
+  private MenuItemOptionTestRepository menuItemOptionRepository;
 
   @Autowired
   private DataEngine dataEngine;
+  
+  @Before
+  public void clearOutRepos() {
+    // Clear out the list.
+    final List<MenuItemDto> allMenuItems = dataEngine.getAllMenuItems();
+    for (MenuItemDto dto: allMenuItems) {
+      log.info("Found menuItem {}", dto);
+    }
+
+    for (MenuItemDto dto : allMenuItems) {
+      int id = dto.getId();
+      log.info("Deleting menuItem {}", dto);
+      dataEngine.deleteMenuItemById(id);
+    }
+  }
   
   @Test
   public void buildMenuTest() throws JsonProcessingException {
     assertNotNull(menuItemRepository);
     assertNotNull(menuItemOptionRepository);
     assertNotNull(dataEngine);
+    
 
     MenuItemDto caesarItemDto = buildMenuItem(LARGE_CAESAR_SALAD);
     log.debug("Large Caesar Salad: \n{}", LARGE_CAESAR_SALAD);
@@ -84,10 +106,10 @@ public class IntegrationTest {
 
     MenuItemOptionDto onionsDto = buildMenuItemOption(ONIONS_OPTION);
     Integer onionId = dataEngine.addOption(pizzaId, onionsDto);
-    
+
     MenuItemOptionDto anchoviesDto = buildMenuItemOption(ANCHOVIES_OPTION);
     Integer anchoviesId = dataEngine.addOption(pizzaId, anchoviesDto);
-    
+
     List<MenuItemDto> allItems = dataEngine.getAllMenuItems();
     System.out.println(allItems);
     assertThat(allItems, Matchers.hasSize(2));

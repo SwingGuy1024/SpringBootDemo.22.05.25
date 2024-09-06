@@ -1,4 +1,4 @@
-package com.infosys.dummy.repository;
+package com.infosys.dummy.framework.engine;
 
 import com.infosys.dummy.entity.MenuItemOption;
 import org.jetbrains.annotations.NotNull;
@@ -15,13 +15,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface MenuItemOptionRepository extends JpaRepository<MenuItemOption, Integer> {
-    String MENU_ITEM_CACHE = MenuItemRepository.MENU_ITEM_CACHE;
+//    String MENU_ITEM_CACHE = MenuItemRepository.MENU_ITEM_CACHE;
 
     @Override
-    @CacheEvict(cacheNames = MENU_ITEM_CACHE, allEntries = true)
     <MIO extends MenuItemOption> @NotNull MIO save(@NotNull MIO option);
 
     @Override
-    @CacheEvict(cacheNames = MENU_ITEM_CACHE, allEntries = true)
     void delete(@NotNull MenuItemOption optionToDelete);
 }

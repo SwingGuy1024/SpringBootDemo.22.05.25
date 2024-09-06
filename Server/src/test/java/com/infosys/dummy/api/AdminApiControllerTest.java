@@ -6,10 +6,10 @@ import com.infosys.dummy.entity.MenuItemOption;
 import com.infosys.dummy.exception.BadRequest400Exception;
 import com.infosys.dummy.exception.NotFound404Exception;
 import com.infosys.dummy.exception.ResponseException;
+import com.infosys.dummy.framework.engine.MenuItemOptionTestRepository;
+import com.infosys.dummy.framework.engine.MenuItemTestRepository;
 import com.infosys.dummy.model.MenuItemDto;
 import com.infosys.dummy.model.MenuItemOptionDto;
-import com.infosys.dummy.repository.MenuItemOptionRepository;
-import com.infosys.dummy.repository.MenuItemRepository;
 import org.hibernate.Hibernate;
 import org.junit.After;
 import org.junit.Test;
@@ -27,7 +27,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.infosys.dummy.engine.PojoUtility.findOrThrow404;
+import static com.infosys.dummy.framework.engine.PojoUtility.findOrThrow404;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
@@ -49,10 +49,10 @@ public class AdminApiControllerTest {
   private AdminApiController adminApiController;
 
   @Autowired
-  private MenuItemRepository menuItemRepository;
+  private MenuItemTestRepository menuItemRepository;
 
   @Autowired
-  private MenuItemOptionRepository menuItemOptionRepository;
+  private MenuItemOptionTestRepository menuItemOptionRepository;
 
   @Test(expected = BadRequest400Exception.class)
   public void testAddMenuItemBadInputEmptyOptionName() {
@@ -162,7 +162,7 @@ public class AdminApiControllerTest {
 
   @Test(expected = NotFound404Exception.class)
   public void testDeleteBadOptionId() {
-    ResponseEntity<Void> badResponseTwo = adminApiController.deleteOption(100000);
+    ResponseEntity<String> badResponseTwo = adminApiController.deleteOption(100000);
     fail(badResponseTwo.toString());
   }
 
@@ -187,7 +187,7 @@ public class AdminApiControllerTest {
     assertNotNull(removedId);
     assertTrue(itemHasOptionName(item, removedName));
     assertNotNull(findOrFail(menuItemOptionRepository, removedId));
-    ResponseEntity<Void> goodResponse = adminApiController.deleteOption(removedOption.getId());
+    ResponseEntity<String> goodResponse = adminApiController.deleteOption(removedOption.getId());
 
     assertEquals(HttpStatus.OK, goodResponse.getStatusCode());
 

@@ -26,7 +26,9 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
       private static final Logger log = LoggerFactory.getLogger(ServerMaster.class);
       public static void main(String[] args) {
         log.info("Launching From ServerMaster");
-        new SpringApplication(ServerMaster.class).run(args);
+        final SpringApplication springApplication = new SpringApplication(ServerMaster.class);
+        springApplication.run(args);
+        
       }
 
       @Override

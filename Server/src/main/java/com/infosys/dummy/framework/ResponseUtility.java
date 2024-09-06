@@ -42,7 +42,7 @@ public enum ResponseUtility {
    * </pre>
    * @param method The service method that does the work of the service, and returns an id as a Number (an Integer or
    *              Long) @return A {@literal ResponseEntity<String>} holding the value of the id returned by the
-   *              ServiceMethod's get() method, converted to a String.
+   *              Supplier's get() method, converted to a String.
    * @throws ResponseException if the method fails
    * @see #serve(HttpStatus, Supplier)
    * @see Supplier#get() 
@@ -58,7 +58,7 @@ public enum ResponseUtility {
    * Note: When the supplier returns nothing, the implementing method should return Void instead of void.
    * @param <T>    The return type
    * @param method The service method that does the work of the service, and returns an instance of type T
-   * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
+   * @return A {@literal ResponseEntity<T>} holding the value returned by the Supplier's get() method.
    * @throws ResponseException if the method fails
    * @see #serve(HttpStatus, Supplier)
    * @see Supplier#get()
@@ -66,15 +66,19 @@ public enum ResponseUtility {
   public static <T> ResponseEntity<T> serveOK(Supplier<T> method) throws ResponseException {
     return serve(HttpStatus.OK, method);
   }
+  
+  public static ResponseEntity<String> serveEmptyOK(Runnable method) throws ResponseException {
+    return serveEmpty(HttpStatus.OK, method);
+  }
 
   /**
-   * <p>Serve the data, specifying the HttpStatus to be used if successful, and a ServiceMethod to execute, which 
-   * will usually be written as a lambda expression by the calling method. This will call the ServiceMethod's
-   * doService() method inside a try/catch block. If doService() completes successfully, this method will return
-   * the result packed inside a ResponseEntity object, using the specified successStatus. If doService throws an 
+   * <p>Serve the data, specifying the HttpStatus to be used if successful, and a Supplier to execute, which 
+   * will usually be written as a lambda expression by the calling method. This will call the Supplier's
+   * get() method inside a try/catch block. If get() completes successfully, this method will return
+   * the result packed inside a ResponseEntity object, using the specified successStatus. If get() throws an 
    * Exception, this method will return a ResponseEntity with the proper error HttpStatus and error message.
    * </p><p>
-   * Since the doService() method is declared to return a ResponseException, the provided lambda expression need only
+   * Since the get() method is not declared to return a checked Exception, the provided lambda expression need only
    * throw a ResponseException on failure. The error handling portion of this method will use the HttpStatus specified
    * in the ResponseException to generate the ResponseEntity.
    * </p><p>
@@ -96,10 +100,10 @@ public enum ResponseUtility {
    *   }
    * </pre>
    * @param <T> The return type. 
-   * @param successStatus The status to use if the ServiceMethod's doService() method (the lambda expression) completes
+   * @param successStatus The status to use if the Supplier's get() method (the lambda expression) completes
    *                      successfully.
    * @param method The service method that does the work of the service, and returns an instance of type T
-   * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
+   * @return A {@literal ResponseEntity<T>} holding the value returned by the Supplier's get() method.
    * @throws ResponseException if the method fails
    * @see Supplier#get() 
    * @see ResponseException
@@ -114,7 +118,7 @@ public enum ResponseUtility {
       throw e;
       
       // In this next block, add any exceptions that may get thrown by methods we call, which are due to bad input data. 
-      // For example, ValidationExceptions and NumberFormat exceptions are both bad input. If you run into any ore,
+      // For example, ValidationExceptions and NumberFormat exceptions are both bad input. If you run into any more,
       // add them here. 
     } catch (ValidationException | NumberFormatException ex) { // Add any exception for status < 500
       throw new BadRequest400Exception(ex);
@@ -123,6 +127,25 @@ public enum ResponseUtility {
       log.error("Internal Error", re);
       throw new InternalError500Exception(re);
     }
+  }
+
+  /**
+   * <p>Serve the request for methods that don't return anything, specifying the HttpStatus to be used if
+   * successful, and a Runnable to execute, which will usually be written as a lambda expression by the
+   * calling method. This will call the Runnable's run() method inside a try/catch block. If run() completes
+   * successfully, this method will return a ResponseEntity object with the reasonPhrase of the specified
+   * successStatus. If run() throws an Exception, this method will return a ResponseEntity with the proper
+   * error HttpStatus and error message.</p> 
+   * @param successStatus The status to use if the Runnable's run() method (the lambda expression) completes
+   *                      successfully.
+   * @param method The service method that does the work of the service, and returns an instance of type T
+   * @return
+   * @throws ResponseException
+   */
+  public static ResponseEntity<String> serveEmpty(HttpStatus successStatus, Runnable method)
+      throws ResponseException {
+    method.run();
+    return serve(successStatus, successStatus::getReasonPhrase);
   }
   
   @SuppressWarnings("unused")

@@ -1,7 +1,7 @@
 package com.infosys.dummy.framework;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.infosys.dummy.engine.PojoUtility;
+import com.infosys.dummy.framework.engine.PojoUtility;
 import com.infosys.dummy.entity.MenuItem;
 import com.infosys.dummy.exception.BadRequest400Exception;
 import com.infosys.dummy.model.MenuItemDto;

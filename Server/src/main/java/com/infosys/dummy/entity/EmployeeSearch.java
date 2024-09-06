@@ -1,4 +1,4 @@
-package com.infosys.dummy.engine;
+package com.infosys.dummy.entity;
 
 import java.util.*;
 import java.util.stream.Collector;
@@ -96,6 +96,18 @@ public class EmployeeSearch {
 ////            Collectors.toMap(Employee::getDepartment, Employee::getName);
 //        }
     }
+    
+//    public static String stripWhiteSpace(String input) {
+//        // Can't say Arrays.stream(input.toCharArray()) because Arrays.stream() doesn't overload for char[]
+//        return input.chars()
+//            .filter(c -> !Character.isWhitespace((char)c))
+//            
+//            .collect(Collectors.joining());
+//            .map(EmployeeSearch::asChar)
+//            .collect(StringBuilder::new));
+//    }
+    
+    private static char asChar(int i) { return (char)i; }
 
     public static Map<String, List<Employee>> getAllEmployeesOrderedByDepartment(Collection<Employee> employees) {
         Map<String, List<Employee>> employeeMap = new HashMap<>();

@@ -1,6 +1,6 @@
 package com.infosys.dummy.api;
 
-import com.infosys.dummy.engine.DataEngine;
+import com.infosys.dummy.framework.engine.DataEngine;
 import com.infosys.dummy.framework.ResponseUtility;
 import com.infosys.dummy.model.MenuItemDto;
 import org.slf4j.Logger;
@@ -42,12 +42,14 @@ public class MenuItemApiController implements MenuItemApi {
 
   @Override
   public ResponseEntity<MenuItemDto> getMenuItem(final Integer id) {
+    log.debug("getMenuItem {}", id);
 //    logHeaders(request, "MenuItemApiController.getMenuItem(id)");
     return ResponseUtility.serveOK(() -> dataEngine.getMenuItemDto(id));
   }
 
   @Override
   public ResponseEntity<List<MenuItemDto>> getAll() {
+    log.debug("getAll()");
 //    logHeaders(request, "MenuItemApiController.getAll()");
     return ResponseUtility.serveOK(dataEngine::getAllMenuItems);
   }

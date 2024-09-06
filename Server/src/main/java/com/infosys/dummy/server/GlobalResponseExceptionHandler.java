@@ -6,16 +6,30 @@ import com.infosys.dummy.exception.ResponseException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.ConversionNotSupportedException;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.validation.BindException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -92,11 +106,11 @@ public class GlobalResponseExceptionHandler
    * @return A ResponseEntity with a useful error message.
    */
   @ExceptionHandler(ResponseException.class)
-  protected ResponseEntity<Object> handleResponseException(RuntimeException ex, WebRequest request) {
+  protected ResponseEntity<Object> handleResponseException(ResponseException ex, WebRequest request) {
+    log.trace("handleResponseException");
     logStandardMessage(ex, request);
-    ResponseException responseException = (ResponseException) ex;
-    String body = new ResponseBody(responseException, request).toString();
-    return handleExceptionInternal(ex, body, new HttpHeaders(), responseException.getHttpStatus(), request);
+    String body = new ResponseBody(ex, request).toString();
+    return handleExceptionInternal(ex, body, new HttpHeaders(), ex.getHttpStatus(), request);
   }
 
   /**
@@ -115,8 +129,128 @@ public class GlobalResponseExceptionHandler
       @NotNull HttpStatus status,
       @NotNull WebRequest request
   ) {
+    log.trace("handleMethodArgumentNotValid");
     logStandardMessage(ex, request);
     return handleExceptionInternal(ex, ex.getBindingResult(), headers, status, request);
+  }
+
+  @Override
+  protected @NotNull ResponseEntity<Object> handleHttpMessageNotReadable(
+      @NotNull HttpMessageNotReadableException ex,
+      @NotNull HttpHeaders headers,
+      @NotNull HttpStatus status,
+      @NotNull WebRequest request) {
+    log.trace("handleHttpMessageNotReadable");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, ex.getHttpInputMessage(), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleMissingPathVariable(
+      @NotNull MissingPathVariableException ex,
+      @NotNull HttpHeaders headers,
+      @NotNull HttpStatus status,
+      @NotNull WebRequest request) {
+    log.trace("(untested) handleMissingPathVariable");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, ex.getVariableName(), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleMissingServletRequestParameter(@NotNull MissingServletRequestParameterException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleMissingServletRequestParameter");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, ex.getMessage(), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleServletRequestBindingException(@NotNull ServletRequestBindingException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleServletRequestBindingException");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleBindException(@NotNull BindException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleBindException");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, ex.getBindingResult(), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleMissingServletRequestPart(@NotNull MissingServletRequestPartException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleMissingServletRequestPart");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, ex.getRequestPartName(), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleHttpRequestMethodNotSupported(@NotNull HttpRequestMethodNotSupportedException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleHttpRequestMethodNotSupported");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, ex.getMethod(), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleHttpMediaTypeNotSupported(@NotNull HttpMediaTypeNotSupportedException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleHttpMediaTypeNotSupported");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(@NotNull HttpMediaTypeNotAcceptableException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleHttpMediaTypeNotAcceptable");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleConversionNotSupported(@NotNull ConversionNotSupportedException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleConversionNotSupported");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleTypeMismatch(@NotNull TypeMismatchException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleTypeMismatch");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleHttpMessageNotWritable(@NotNull HttpMessageNotWritableException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleHttpMessageNotWritable");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected @NotNull ResponseEntity<Object> handleNoHandlerFoundException(@NotNull NoHandlerFoundException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleNoHandlerFoundException");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
+  }
+
+  // Untested
+  @Override
+  protected ResponseEntity<Object> handleAsyncRequestTimeoutException(@NotNull AsyncRequestTimeoutException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    log.trace("(untested) handleAsyncRequestTimeoutException");
+    logStandardMessage(ex, request);
+    return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
   }
 
   private static String extractPath(final WebRequest webRequest) {

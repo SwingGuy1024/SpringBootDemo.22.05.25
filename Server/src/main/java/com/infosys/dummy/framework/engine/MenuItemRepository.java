@@ -1,4 +1,4 @@
-package com.infosys.dummy.repository;
+package com.infosys.dummy.framework.engine;
 
 import com.infosys.dummy.entity.MenuItem;
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <p>Created by IntelliJ IDEA.
@@ -17,18 +18,25 @@ import java.util.List;
  * @author Miguel Mu\u00f1oz
  */
 @Repository
-public interface MenuItemRepository extends JpaRepository<MenuItem, Integer> {
-  String MENU_ITEM_CACHE = "menuItems";
+interface MenuItemRepository extends JpaRepository<MenuItem, Integer> {
 
   @Override
-  @Cacheable(cacheNames = MENU_ITEM_CACHE)
   @NotNull List<MenuItem> findAll();
 
   @Override
-  @CacheEvict(cacheNames = MENU_ITEM_CACHE, allEntries = true)
   <M extends MenuItem> @NotNull M save(@NotNull M menuItem);
 
   @Override
-  @CacheEvict(cacheNames = MENU_ITEM_CACHE, allEntries = true)
   <S extends MenuItem> @NotNull S saveAndFlush(@NotNull S s);
+
+  @Override
+  @NotNull
+  List<MenuItem> findAllById(@NotNull Iterable<Integer> iterable);
+
+  @Override
+  @NotNull
+  Optional<MenuItem> findById(@NotNull Integer integer);
+
+  @Override
+  void deleteAll();
 }
