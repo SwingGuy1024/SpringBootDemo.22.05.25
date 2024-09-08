@@ -1,16 +1,12 @@
 package com.infosys.dummy;
 
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * <p>This Spring Boot application exists because other modules need
@@ -18,23 +14,24 @@ import org.springframework.test.context.junit4.SpringRunner;
  * depends on all the other modules, so is the last module to get built, presumably for packaging reasons. This
  * is not the main application, which is in the Root module.</p>
  *
- * <p>Caching Configuration Reference:
- * https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#why-spring-redis</p>
+ * <p>Caching Configuration Reference:<br>
+ * @see <a href="https://docs.spring.io/spring-data-redis/docs/1.1.1.RELEASE/reference/html/why-spring-redis.html">
+ *   Why Spring Data Redis?</a></p>
  *
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 3/2/21
  * <p>Time: 11:43 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
-//@SuppressWarnings({"CallToNumericToString", "HardCodedStringLiteral", "MagicNumber", "RedundantSuppression"})
-////@RunWith(SpringRunner.class)
-//@ComponentScan(basePackages = {
-//        "com.infosys.dummy",
-//        "org.openapitools",
-//})
-//@SpringBootTest(classes = ServerMaster.class)
-//@SpringBootApplication
+@ComponentScan(basePackages = {
+    "org.openapitools",
+    "com.infosys.dummy.api",
+    "com.infosys.dummy.server",
+    "com.infosys.dummy.framework.util",
+    "com.infosys.dummy.framework.engine",
+})
+@SpringBootApplication
 public class SpringBootTester implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(SpringBootTester.class);
     public static void main(String[] args) {

@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.0.1
 info:
   description: System to keep track of avail restaurant menu items
   version: 1.0.0
@@ -8,6 +8,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
+
 # See https://stackoverflow.com/questions/62044747/message-field-is-empty-in-error-response-spring-boot
 #servers:
 #  - url: http://localhost:27777/demo/
@@ -193,8 +194,8 @@ paths:
         417:
           description: Token Expired
 
-security:
-  - bearerAuth: [ ]
+#security:
+#  - bearerAuth: [ ]
 components:
 #  securitySchemes:
 #    bearerAuth: # arbitrary name for the security scheme
@@ -210,6 +211,7 @@ components:
           format: int32
         name:
           type: string
+#          x-value-extra-annotation: "@"
         itemPrice:
           type: number
           description: Price. (BigDecimal)

@@ -3,7 +3,7 @@ package com.infosys.dummy.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infosys.dummy.ServerMaster;
+import com.infosys.dummy.SpringBootTester;
 import com.infosys.dummy.entity.MenuItem;
 import com.infosys.dummy.entity.MenuItemOption;
 import com.infosys.dummy.framework.engine.DataEngine;
@@ -12,11 +12,10 @@ import com.infosys.dummy.framework.engine.MenuItemTestRepository;
 import com.infosys.dummy.model.MenuItemDto;
 import com.infosys.dummy.model.MenuItemOptionDto;
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,22 +23,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 2/9/21
  * <p>Time: 1:59 AM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 @SuppressWarnings("HardcodedLineSeparator")
 
@@ -53,8 +50,7 @@ import static org.junit.Assert.assertNotNull;
     "org.openapitools.configuration"
 })
 @ExtendWith(SpringExtension.class)
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = ServerMaster.class)
+@SpringBootTest(classes = SpringBootTester.class)
 @Component
 public class IntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(IntegrationTest.class);
@@ -73,7 +69,7 @@ public class IntegrationTest {
   @Autowired
   private DataEngine dataEngine;
   
-  @Before
+  @BeforeEach
   public void clearOutRepos() {
     // Clear out the list.
     final List<MenuItemDto> allMenuItems = dataEngine.getAllMenuItems();
@@ -198,7 +194,7 @@ public class IntegrationTest {
           "    \"deltaPrice\": 1.00\n" +
           '}';
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<MenuItem> menuItems = menuItemRepository.findAll();
     for (MenuItem menuItem: menuItems) {

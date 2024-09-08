@@ -1,26 +1,27 @@
 package com.infosys.dummy.api;
 
-import com.infosys.dummy.ServerMaster;
+import com.infosys.dummy.SpringBootTester;
 import com.infosys.dummy.entity.MenuItem;
 import com.infosys.dummy.entity.MenuItemOption;
 import com.infosys.dummy.exception.BadRequest400Exception;
 import com.infosys.dummy.exception.NotFound404Exception;
 import com.infosys.dummy.exception.ResponseException;
+import com.infosys.dummy.framework.engine.DataEngine;
 import com.infosys.dummy.framework.engine.MenuItemOptionTestRepository;
 import com.infosys.dummy.framework.engine.MenuItemTestRepository;
+import com.infosys.dummy.framework.engine.PojoUtility;
 import com.infosys.dummy.model.MenuItemDto;
 import com.infosys.dummy.model.MenuItemOptionDto;
 import org.hibernate.Hibernate;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.validation.ConstraintViolationException;
 import java.math.BigDecimal;
@@ -30,18 +31,18 @@ import java.util.stream.Collectors;
 import static com.infosys.dummy.framework.engine.PojoUtility.findOrThrow404;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 1/9/21
  * <p>Time: 1:33 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 @SuppressWarnings({"CallToNumericToString", "HardCodedStringLiteral", "MagicNumber", "RedundantSuppression"})
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = ServerMaster.class)
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = SpringBootTester.class)
 @Component
 public class AdminApiControllerTest {
 
@@ -53,8 +54,11 @@ public class AdminApiControllerTest {
 
   @Autowired
   private MenuItemOptionTestRepository menuItemOptionRepository;
+  
+  @Autowired
+  private DataEngine dataEngine;
 
-  @Test(expected = BadRequest400Exception.class)
+  @Test
   public void testAddMenuItemBadInputEmptyOptionName() {
     MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
     menuItemOption.setName("");
@@ -64,45 +68,44 @@ public class AdminApiControllerTest {
     menuItemDto.setAllowedOptions(Collections.singletonList(menuItemOption));
     menuItemDto.setName("BadItem");
     menuItemDto.setItemPrice(new BigDecimal("0.50"));
-    ResponseEntity<String> responseEntity = adminApiController.addMenuItem(menuItemDto);
-    fail(responseEntity.toString());
-  }
-
-  @Test(expected = ConstraintViolationException.class)
-  public void testAddMenuItemBadInputMissingPrice() {
-    MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
-    menuItemOption.setName("BadOption");
-//    menuItemOption.setDeltaPrice(new BigDecimal("5.00"));
-
-    MenuItemDto menuItemDto = new MenuItemDto();
-    menuItemDto.setAllowedOptions(Collections.singletonList(menuItemOption));
-    menuItemDto.setName("BadItem");
-    menuItemDto.setItemPrice(new BigDecimal("0.50"));
-    ResponseEntity<String> responseEntity = adminApiController.addMenuItem(menuItemDto);
-    fail(responseEntity.toString());
-  }
-
-  @Test(expected = NumberFormatException.class)
-  public void testAddMenuItemBadInputEmptyPrice() {
-    MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
-    menuItemOption.setName("BadOption");
-    menuItemOption.setDeltaPrice(new BigDecimal(""));
-
-    MenuItemDto menuItemDto = new MenuItemDto();
-    menuItemDto.setAllowedOptions(Collections.singletonList(menuItemOption));
-    menuItemDto.setName("BadItem");
-    menuItemDto.setItemPrice(new BigDecimal("0.50"));
-    ResponseEntity<String> responseEntity = adminApiController.addMenuItem(menuItemDto);
-    fail(responseEntity.toString());
+    assertThrows(BadRequest400Exception.class, () -> adminApiController.addMenuItem(menuItemDto));
   }
 
   @Test
-  public void testAddMenuItemGoodInput() {
+  public void testAddMenuItemBadInputMissingPrice() {
+    MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
+    menuItemOption.setName("BadOption");
+
+    MenuItemDto menuItemDto = new MenuItemDto();
+    menuItemDto.setAllowedOptions(Collections.singletonList(menuItemOption));
+    menuItemDto.setName("BadItem");
+    menuItemDto.setItemPrice(new BigDecimal("0.50"));
+    assertThrows(ConstraintViolationException.class, () -> adminApiController.addMenuItem(menuItemDto));
+  }
+
+  @Test
+  public void testAddMenuItemBadInputEmptyPrice() {
+    MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
+    menuItemOption.setName("BadOption");
+    assertThrows(NumberFormatException.class, () -> menuItemOption.setDeltaPrice(new BigDecimal("")));
+  }
+
+  @Test public void testAddMenuItemMissingPrice() {
+    MenuItemDto menuItemDto = new MenuItemDto();
+    MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
+    menuItemDto.setAllowedOptions(Collections.singletonList(menuItemOption));
+    menuItemDto.setName("BadItem");
+    System.out.printf("Bad Price?:%s%n", menuItemDto); // NON-NLS
+    assertThrows(BadRequest400Exception.class, () ->  dataEngine.addMenuItemFromDto(menuItemDto));
+  }
+
+  @Test
+  public void testAddMenuItemOptionGoodInput() {
     MenuItemDto menuItemDto = makeMenuItem();
     ResponseEntity<String> responseEntity = adminApiController.addMenuItem(menuItemDto);
     assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
-    final int id = Integer.parseInt(Objects.requireNonNull(responseEntity.getBody()));
-    MenuItem item = findOrFail(menuItemRepository, id);
+    final int id = PojoUtility.extractInt(responseEntity);
+    MenuItem item = findOrThrow404(menuItemRepository, id);
     Hibernate.initialize(item);
     assertEquals("0.50", item.getItemPrice().toString());
     assertEquals("GoodItem", item.getName());
@@ -113,7 +116,8 @@ public class AdminApiControllerTest {
     }
     assertThat(foodOptionSet, hasItems("olives", "pepperoni"));
     assertEquals(2, foodOptionSet.size());
-
+    ResponseEntity<String> response = adminApiController.addMenuItem(menuItemDto);
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
   }
 
   private static MenuItemDto makeMenuItem() {
@@ -160,20 +164,19 @@ public class AdminApiControllerTest {
 
   // Test of deleteOption()
 
-  @Test(expected = NotFound404Exception.class)
+  @Test
   public void testDeleteBadOptionId() {
-    ResponseEntity<String> badResponseTwo = adminApiController.deleteOption(100000);
-    fail(badResponseTwo.toString());
+    assertThrows(NotFound404Exception.class, () -> adminApiController.deleteOption(100000));
   }
 
-  @Test(expected = NotFound404Exception.class)
+  @Test
   public void testDeleteOption() throws ResponseException {
     MenuItemDto menuItemDto = createPizzaMenuItem();
     ResponseEntity<String> responseEntity = adminApiController.addMenuItem(menuItemDto);
-    final int id = Integer.parseInt(Objects.requireNonNull(responseEntity.getBody()));
+    final int id = PojoUtility.extractInt(responseEntity); //.parseInt(Objects.requireNonNull(responseEntity.getBody()));
     System.out.printf("Body: <%s>%n", id);
 
-    MenuItem item = findOrFail(menuItemRepository, id);
+    MenuItem item = findOrThrow404(menuItemRepository, id);
     Hibernate.initialize(item);
     Set<String> nameSet = item.getAllowedOptions()
             .stream()
@@ -186,7 +189,7 @@ public class AdminApiControllerTest {
     Integer removedId = removedOption.getId();
     assertNotNull(removedId);
     assertTrue(itemHasOptionName(item, removedName));
-    assertNotNull(findOrFail(menuItemOptionRepository, removedId));
+    assertNotNull(findOrThrow404(menuItemOptionRepository, removedId));
     ResponseEntity<String> goodResponse = adminApiController.deleteOption(removedOption.getId());
 
     assertEquals(HttpStatus.OK, goodResponse.getStatusCode());
@@ -196,25 +199,10 @@ public class AdminApiControllerTest {
       System.out.println(option);
     }
 
-    item = findOrFail(menuItemRepository, id);
+    item = findOrThrow404(menuItemRepository, id);
     assertFalse(itemHasOptionName(item, removedName));
-    findOrThrow404(menuItemOptionRepository, removedId);
-  }
 
-  /*
-   * This is for tests that need to repeatedly call findOrThrow404() when the test requires that it succeed,
-   * but the test is annotated with @Test(expected = NotFound404Exception.class) because at the end, it needs
-   * the findOrThrow404() to fail. This way, if one of the earlier call fails when it's supposed to succeed,
-   * the test still fails.
-   */
-  private static <T> T findOrFail(JpaRepository<T, Integer> repository, int id) {
-    T entity = null;
-    try {
-      return findOrThrow404(repository, id);
-    } catch (ResponseException ignored) {
-      fail("ID=" + id);
-    }
-    return entity;
+    assertThrows(NotFound404Exception.class, () ->findOrThrow404(menuItemOptionRepository, removedId));
   }
 
   private static MenuItemDto createPizzaMenuItem() {
@@ -237,7 +225,7 @@ public class AdminApiControllerTest {
             .anyMatch(option -> Objects.equals(option.getName(), optionName));
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<MenuItem> menuItems = menuItemRepository.findAll();
     for (MenuItem menuItem : menuItems) {
