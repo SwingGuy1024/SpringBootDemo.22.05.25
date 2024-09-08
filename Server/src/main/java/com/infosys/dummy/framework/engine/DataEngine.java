@@ -3,6 +3,7 @@ package com.infosys.dummy.framework.engine;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infosys.dummy.entity.MenuItem;
 import com.infosys.dummy.entity.MenuItemOption;
+import com.infosys.dummy.exception.NotFound404Exception;
 import com.infosys.dummy.model.MenuItemDto;
 import com.infosys.dummy.model.MenuItemOptionDto;
 import org.jetbrains.annotations.NonNls;
@@ -11,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
-
-import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -138,19 +137,16 @@ public class DataEngine {
     menuItemOptionRepository.save(itemToDelete);
 
     menuItemOptionRepository.delete(itemToDelete);
-//    return null;
   }
 
   @CacheEvict(cacheNames = MENU_ITEM_CACHE)
-  public Void deleteMenuItemById(final Integer menuItemId) {
+  public void deleteMenuItemById(final Integer menuItemId) {
     log.trace("Deleting menuItem with id {}", menuItemId);
     
-    // TODO: Figure out if the Cache is why this doesn't work.
-    MenuItem menuItem = PojoUtility.findOrThrow404(menuItemRepository, menuItemId);
-//    if (menuItemRepositoryWrapper.existsById(menuItemId)) {
-      menuItemRepository.deleteById(menuItemId);
-//    }
-    return null;
+    if (!menuItemRepository.existsById(menuItemId)) {
+      throw new NotFound404Exception(menuItemId.toString());
+    }
+    menuItemRepository.deleteById(menuItemId);
   }
 
   private MenuItemOption convertMenuItemOption(final MenuItemOptionDto menuItemOptionDto) {
@@ -158,13 +154,12 @@ public class DataEngine {
   }
 
   @CacheEvict(cacheNames = MENU_ITEM_CACHE)
-  public Void addOptionToItem(final int menuItemOptionId, final int menuItemId) {
+  public void addOptionToItem(final int menuItemOptionId, final int menuItemId) {
     MenuItem menuItem = PojoUtility.findOrThrow404(menuItemRepository, menuItemId);
     MenuItemOption option = PojoUtility.findOrThrow404(menuItemOptionRepository, menuItemOptionId);
     option.setMenuItem(menuItem);
     menuItem.getAllowedOptions().add(option);
     menuItemRepository.saveAndFlush(menuItem);
     log.trace("MenuItemOption id {} added to menu item id {}", menuItemOptionId, menuItemId);
-    return null;
   }
 }

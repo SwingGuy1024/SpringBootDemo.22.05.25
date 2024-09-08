@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infosys.dummy.exception.BadRequest400Exception;
 import com.infosys.dummy.exception.NotFound404Exception;
 import com.infosys.dummy.exception.ResponseException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.ResponseEntity;
 
 import javax.persistence.Entity;
 import java.util.*;
@@ -20,7 +22,7 @@ import java.util.function.Function;
  * <p>Date: 2/11/18
  * <p>Time: 10:26 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 @SuppressWarnings({"UnusedReturnValue", "HardCodedStringLiteral", "OverlyBroadThrowsClause"})
 public enum PojoUtility {
@@ -74,24 +76,32 @@ public enum PojoUtility {
       throw new BadRequest400Exception(id, e);
     }
   }
+  
+  public static int extractInt(@NotNull ResponseEntity<String> integerResponse) {
+    return confirmAndDecodeInteger(Objects.requireNonNull(integerResponse.getBody()));
+  }
+  
+  public static long extractLong(ResponseEntity<String> integerResponse) {
+    return confirmAndDecodeLong(Objects.requireNonNull(integerResponse.getBody()));
+  }
 
   /**
    * Retrieves an entity by its ID. First tests the entity for existence, and throws a NotFound404Exception if it's not
    * in the table. This should only be used for Entities, because it throws a 404 (Not Found) on failure. For
    * non-entities, use
    *
+   * <p>See <a href="https://www.javacodemonk.com/difference-between-getone-and-findbyid-in-spring-data-jpa-3a96c3ff">...</a></p>
    * @param repository The repository
    * @param id The id
    * @param <E> The entity type
    * @param <ID> The type of the entity's ID field
    * @return The entity with the provided id
-   * @link https://www.javacodemonk.com/difference-between-getone-and-findbyid-in-spring-data-jpa-3a96c3ff
    * @throws NotFound404Exception if the entity with the specified id is not found
    */
   public static <E, ID> E findOrThrow404(JpaRepository<E, ID> repository, ID id) throws ResponseException {
-    // We use findById() instead of getOne() because getOne returns a lazily loadable value even if it didn't find anything. That
-    // delays the exception until the code tries to use the object. findById() returns an empty Optional if it didn't find anything,
-    // which makes our code cleaner.
+    // We use findById() instead of getOne() because getOne returns a lazily loadable value even if it didn't find
+    // anything. That delays the exception until the code tries to use the object. findById() returns an empty Optional
+    // if it didn't find anything, which makes our code cleaner.
     return repository
         .findById(id)
         .orElseThrow(() -> new NotFound404Exception(String.format("Missing object with id %s", id)));

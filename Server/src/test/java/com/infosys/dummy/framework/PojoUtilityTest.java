@@ -6,47 +6,31 @@ import com.infosys.dummy.entity.MenuItem;
 import com.infosys.dummy.exception.BadRequest400Exception;
 import com.infosys.dummy.model.MenuItemDto;
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 1/9/21
  * <p>Time: 12:34 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 public class PojoUtilityTest {
-  @Test(expected = AssertionError.class)
-  public void neverNullAssertionTest() {
-    // NOTE: This test assumes assertions are turned on during testing. If assertions are off, this test will fail.
-    PojoUtility.confirmNotNull(new MenuItem());
-    testIfAssertionsAreOn(); // makes test pass if assertions are off.
-  }
 
-  @SuppressWarnings("ErrorNotRethrown")
-  private static void testIfAssertionsAreOn() {
-    try {
-      assert false;
-    } catch (AssertionError ignore) {
-      return;
-    }
-    System.out.println("Warning: Assertions are off. This test needs assertions to be on.");
-    throw new AssertionError("Assertions are off");
-  }
-  
   @Test
   public void testSkipNull() {
     Iterable<?> iterable = PojoUtility.skipNull(null);
-    assertNotNull(iterable);
+    Assertions.assertNotNull(iterable);
     Iterator<?> iterator = iterable.iterator();
     while (iterator.hasNext()) {
-      fail("Iterable not empty");
+      Assertions.fail("Iterable not empty");
     }
 
     String test = "TEST";
@@ -55,20 +39,20 @@ public class PojoUtilityTest {
     iterator = iterable.iterator();
     int count = 0;
     while (iterator.hasNext()) {
-      assertSame(test, iterator.next());
+      Assertions.assertSame(test, iterator.next());
       count++;
     }
     assertEquals(1, count);
   }
 
-  @Test(expected = BadRequest400Exception.class)
+  @Test
   public void decodeBadInteger() {
-    PojoUtility.confirmAndDecodeInteger("bad");
+    assertThrows(BadRequest400Exception.class, () -> PojoUtility.confirmAndDecodeInteger("bad"));
   }
 
-  @Test(expected = BadRequest400Exception.class)
+  @Test
   public void decodeBadLong() {
-    PojoUtility.confirmAndDecodeLong("bad");
+    assertThrows(BadRequest400Exception.class, () -> PojoUtility.confirmAndDecodeLong("bad"));
   }
   
   @Test
@@ -89,11 +73,10 @@ public class PojoUtilityTest {
     assertEquals("1text".substring(1), confirmed);
   }
   
-  @Test(expected = BadRequest400Exception.class)
+  @Test
   public void testConfirmNeverNull2() {
-    //noinspection unused
-    PojoUtility.confirmNotNull(null);
-    fail();
+    //no inspection unused
+    assertThrows(BadRequest400Exception.class, () -> PojoUtility.confirmNotNull(null));
   }
 
   @Test
@@ -101,30 +84,27 @@ public class PojoUtilityTest {
     try {
       //noinspection unused
       PojoUtility.confirmNotNull(new MenuItem());
-      fail(); // Should fail when used on an Entity.
+      Assertions.fail(); // Should fail when used on an Entity.
     } catch (AssertionError e) {
       System.out.printf("testEntityAssertion: %s%n", e.getMessage());
       assertThat(e.getMessage(), Matchers.containsString("MenuItem"));
     }
   }
 
-  @Test(expected = BadRequest400Exception.class)
+  @Test
   public void testEntityAssertionFail() {
-    PojoUtility.confirmNotNull(null);
+    assertThrows(BadRequest400Exception.class, () ->PojoUtility.confirmNotNull(null));
   }
 
   @Test
   public void testConfirmNull() {
     PojoUtility.confirmNull(null);
-    try {
-      PojoUtility.confirmNull("Not null");
-      fail("confirmNull failed");
-    } catch (BadRequest400Exception ignored) { }
+    assertThrows(BadRequest400Exception.class, () -> PojoUtility.confirmNull("Not null"));
   }
 
-  @Test(expected = BadRequest400Exception.class)
+  @Test
   public void testConfirmEqual() {
-    PojoUtility.confirmEqual("this", "that");
+    assertThrows(BadRequest400Exception.class, () -> PojoUtility.confirmEqual("this", "that"));
   }
 
   @Test
@@ -145,6 +125,7 @@ public class PojoUtilityTest {
   
   @Test
   public void testEmptyIfNull() {
+    //noinspection ObviousNullCheck
     String s1 = PojoUtility.emptyIfNull("not");
     assertEquals(s1, "not");
     
@@ -152,14 +133,14 @@ public class PojoUtilityTest {
     assertEquals("", s2);
   }
   
-  @Test(expected = BadRequest400Exception.class)
+  @Test
   public void testConfirmNotEmpty1() {
-    PojoUtility.confirmNotEmpty(null);
+    assertThrows(BadRequest400Exception.class, () ->PojoUtility.confirmNotEmpty(null));
   }
 
-  @Test(expected = BadRequest400Exception.class)
+  @Test
   public void testConfirmNotEmpty2() {
-    PojoUtility.confirmNotEmpty("");
+    assertThrows(BadRequest400Exception.class, () -> PojoUtility.confirmNotEmpty(""));
   }
 
   @Test

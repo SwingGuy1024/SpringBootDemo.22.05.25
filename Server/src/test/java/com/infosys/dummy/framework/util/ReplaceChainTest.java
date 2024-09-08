@@ -1,20 +1,21 @@
 package com.infosys.dummy.framework.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 1/9/21
  * <p>Time: 12:28 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 public class ReplaceChainTest {
 
+  @SuppressWarnings("SpellCheckingInspection")
   @Test
   public void testReplacement() {
     String[] cases = {
@@ -40,6 +41,7 @@ public class ReplaceChainTest {
     }
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   @Test
   public void testIgnoreCase() {
     String[] cases = {
