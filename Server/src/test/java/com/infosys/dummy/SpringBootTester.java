@@ -15,14 +15,14 @@ import org.springframework.context.annotation.ComponentScan;
  * is not the main application, which is in the Root module.</p>
  *
  * <p>Caching Configuration Reference:<br>
- * @see <a href="https://docs.spring.io/spring-data-redis/docs/1.1.1.RELEASE/reference/html/why-spring-redis.html">
- *   Why Spring Data Redis?</a></p>
- *
- * <p>Created by IntelliJ IDEA.
- * <p>Date: 3/2/21
- * <p>Time: 11:43 PM
  *
  * @author Miguel Muñoz
+ * @see <a href="https://docs.spring.io/spring-data-redis/docs/1.1.1.RELEASE/reference/html/why-spring-redis.html">
+ *     Why Spring Data Redis?</a></p>
+ *
+ *     <p>Created by IntelliJ IDEA.
+ *     <p>Date: 3/2/21
+ *     <p>Time: 11:43 PM
  */
 @ComponentScan(basePackages = {
     "org.openapitools",
@@ -33,28 +33,30 @@ import org.springframework.context.annotation.ComponentScan;
 })
 @SpringBootApplication
 public class SpringBootTester implements CommandLineRunner {
-    private static final Logger log = LoggerFactory.getLogger(SpringBootTester.class);
-    public static void main(String[] args) {
-        log.info("Launching From SpringBootTester");
-        new SpringApplication(SpringBootTester.class).run(args);
+  private static final Logger log = LoggerFactory.getLogger(SpringBootTester.class);
+
+  public static void main (String[] args) {
+    log.info("Launching From SpringBootTester");
+    new SpringApplication(SpringBootTester.class).run(args);
+  }
+
+  @Override
+  public void run (String... arg0) {
+    Thread.setDefaultUncaughtExceptionHandler((t, e) -> log.error("Thread {}: {}", t.getName(),
+        e.getLocalizedMessage(), e));
+    if ((arg0.length > 0) && "exitcode".equals(arg0[0])) { //NON-NLS
+      throw new ExitException();
     }
+  }
+
+  static class ExitException extends RuntimeException implements ExitCodeGenerator {
+    private static final long serialVersionUID = 1L;
 
     @Override
-    public void run(String... arg0) {
-        Thread.setDefaultUncaughtExceptionHandler((t, e) -> log.error("Thread {}: {}", t.getName(), e.getLocalizedMessage(), e));
-        if ((arg0.length > 0) && "exitcode".equals(arg0[0])) { //NON-NLS
-            throw new ExitException();
-        }
+    public int getExitCode () {
+      return 10;
     }
 
-    static class ExitException extends RuntimeException implements ExitCodeGenerator {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public int getExitCode() {
-            return 10;
-        }
-
-    }
+  }
 
 }

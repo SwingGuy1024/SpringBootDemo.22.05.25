@@ -2,8 +2,6 @@ package com.infosys.dummy.framework.engine;
 
 import com.infosys.dummy.entity.MenuItem;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +13,7 @@ import java.util.Optional;
  * <p>Date: 2/20/18
  * <p>Time: 12:03 AM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 @Repository
 interface MenuItemRepository extends JpaRepository<MenuItem, Integer> {

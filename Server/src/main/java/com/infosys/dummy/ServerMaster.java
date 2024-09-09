@@ -15,44 +15,45 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 /**
  *
  */
-    @ComponentScan(basePackages = {
-        "com.infosys.dummy",
-        "org.openapitools",
-        "configuration"
-    })
-    @EnableCaching
-    @SpringBootApplication
-    public class ServerMaster implements CommandLineRunner {
-      private static final Logger log = LoggerFactory.getLogger(ServerMaster.class);
-      public static void main(String[] args) {
-        log.info("Launching From ServerMaster");
-        final SpringApplication springApplication = new SpringApplication(ServerMaster.class);
-        springApplication.run(args);
-        
-      }
+@ComponentScan(basePackages = {
+    "com.infosys.dummy",
+    "org.openapitools",
+    "configuration"
+})
+@EnableCaching
+@SpringBootApplication
+public class ServerMaster implements CommandLineRunner {
+  private static final Logger log = LoggerFactory.getLogger(ServerMaster.class);
 
-      @Override
-      public void run(String... arg0) {
-        Thread.setDefaultUncaughtExceptionHandler((t, e) -> log.error("Thread {}: {}", t.getName(), e.getLocalizedMessage(), e));
-        if ((arg0.length > 0) && "exitcode".equals(arg0[0])) { //NON-NLS
-          throw new ExitException();
-        }
-      }
+  public static void main(String[] args) {
+    log.info("Launching From ServerMaster");
+    final SpringApplication springApplication = new SpringApplication(ServerMaster.class);
+    springApplication.run(args);
 
-      static class ExitException extends RuntimeException implements ExitCodeGenerator {
-        private static final long serialVersionUID = 1L;
+  }
 
-        @Override
-        public int getExitCode() {
-          return 10;
-        }
-
-      }
-
-      // This was suggested at https://stackoverflow.com/questions/49538896/spring-boot-error-message-doesnt-work
-      // in order to give me better error messages when OpenAPI validations are triggered, but it doesn't work.
-      @Bean
-      public Validator validator() {
-        return new LocalValidatorFactoryBean();
-      }
+  @Override
+  public void run(String... arg0) {
+    Thread.setDefaultUncaughtExceptionHandler((t, e) -> log.error("Thread {}: {}", t.getName(), e.getLocalizedMessage(), e));
+    if ((arg0.length > 0) && "exitcode".equals(arg0[0])) { //NON-NLS
+      throw new ExitException();
     }
+  }
+
+  // This was suggested at https://stackoverflow.com/questions/49538896/spring-boot-error-message-doesnt-work
+  // in order to give me better error messages when OpenAPI validations are triggered, but it doesn't work.
+  @Bean
+  public Validator validator() {
+    return new LocalValidatorFactoryBean();
+  }
+
+  static class ExitException extends RuntimeException implements ExitCodeGenerator {
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public int getExitCode() {
+      return 10;
+    }
+
+  }
+}

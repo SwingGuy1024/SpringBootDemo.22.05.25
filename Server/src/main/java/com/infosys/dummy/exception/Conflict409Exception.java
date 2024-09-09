@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * <p>Date: 2/12/21
  * <p>Time: 7:32 AM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 @ResponseStatus(HttpStatus.CONFLICT)
 public class Conflict409Exception extends ResponseException {

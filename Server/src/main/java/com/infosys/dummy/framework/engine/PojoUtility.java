@@ -33,11 +33,12 @@ public enum PojoUtility {
 
   /**
    * Returns the provided collection. If the collection is null, returns an unmodifiable empty List. This lets you
-   * iterate over any collection without checking it for null: 
+   * iterate over any collection without checking it for null:
    * <p>
    * {@code for (String s: skipNull(maybeNullSetOfStrings)) {...}}
+   *
    * @param iterable The collection or other Iterable
-   * @param <T> The type of the collection members
+   * @param <T>      The type of the collection members
    * @return the supplied Iterable, or if it's null, an unmodifiable empty Iterable.
    */
   public static <T> Iterable<T> skipNull(@Nullable Iterable<T> iterable) {
@@ -76,11 +77,11 @@ public enum PojoUtility {
       throw new BadRequest400Exception(id, e);
     }
   }
-  
+
   public static int extractInt(@NotNull ResponseEntity<String> integerResponse) {
     return confirmAndDecodeInteger(Objects.requireNonNull(integerResponse.getBody()));
   }
-  
+
   public static long extractLong(ResponseEntity<String> integerResponse) {
     return confirmAndDecodeLong(Objects.requireNonNull(integerResponse.getBody()));
   }
@@ -91,10 +92,11 @@ public enum PojoUtility {
    * non-entities, use
    *
    * <p>See <a href="https://www.javacodemonk.com/difference-between-getone-and-findbyid-in-spring-data-jpa-3a96c3ff">...</a></p>
+   *
    * @param repository The repository
-   * @param id The id
-   * @param <E> The entity type
-   * @param <ID> The type of the entity's ID field
+   * @param id         The id
+   * @param <E>        The entity type
+   * @param <ID>       The type of the entity's ID field
    * @return The entity with the provided id
    * @throws NotFound404Exception if the entity with the specified id is not found
    */
@@ -110,8 +112,9 @@ public enum PojoUtility {
   /**
    * Use when a non-entity object should not be null. Throws a BadRequest400Exception if null. If testing for an
    * entity by its id, you should use findOrThrow404(T object, Object id), which return a NOT_FOUND (404).
+   *
    * @param object The non-entity object to test.
-   * @param <T> The object type
+   * @param <T>    The object type
    * @return object, only if it's not null
    * @throws ResponseException BAD_REQUEST (400) if object is null
    */
@@ -120,16 +123,17 @@ public enum PojoUtility {
       throw new BadRequest400Exception("Missing object");
     }
     assert !isEntityAssertion(object) : String.format(
-            "This method is not for entity objects. Use findOrThrow404(): %s", getEntityClass(object));
+        "This method is not for entity objects. Use findOrThrow404(): %s", getEntityClass(object));
     return object;
   }
 
   /**
    * Use when a non-entity object should not be null. Throws a BadRequest400Exception if null. If testing for an
    * entity by its id, you should use findOrThrow404(T object, Object id), which return a NOT_FOUND (404).
+   *
    * @param object The non-entity object to test.
-   * @param label A String to identify the bad value, usually a property name, like ID.
-   * @param <T> The object type
+   * @param label  A String to identify the bad value, usually a property name, like ID.
+   * @param <T>    The object type
    * @return object, only if it's not null
    * @throws ResponseException BAD_REQUEST (400) if object is null
    */
@@ -138,26 +142,26 @@ public enum PojoUtility {
       throw new BadRequest400Exception(String.format("Missing object: %s", label));
     }
     assert !isEntityAssertion(object) : String.format(
-            "This method is not for entity objects. Use findOrThrow404(): %s", getEntityClass(object));
+        "This method is not for entity objects. Use findOrThrow404(): %s", getEntityClass(object));
     return object;
   }
 
-//   This used to work. Then it broke, and now it works again.
-//   I'm wondering if this is a bad idea. Fortunately, it's only executed in assertions.
+  //   This used to work. Then it broke, and now it works again.
+  //   I'm wondering if this is a bad idea. Fortunately, it's only executed in assertions.
   private static boolean isEntityAssertion(Object object) {
     Class<?> entityClass = getEntityClass(object);
     return entityClass != null;
   }
-  
+
   private static boolean isDeclaredEntityClass(Class<?> theClass) {
     return Arrays.stream(theClass.getDeclaredAnnotations())
         .anyMatch(a -> a.annotationType() == Entity.class);
   }
-  
+
   private static @Nullable Class<?> getEntityClass(final Object object) {
     Class<?> objectClass = object.getClass();
     Class<?> superClass = objectClass;
-    
+
     // If the object class is an interface, this loop will end with a null superclass.
     while ((superClass != Object.class) && (superClass != null)) {
       if (isDeclaredEntityClass(superClass)) {
@@ -168,7 +172,7 @@ public enum PojoUtility {
     }
     return null;
   }
-  
+
   @SafeVarargs
   public static <T> Set<T> asSet(T... tArray) {
     return new HashSet<>(Arrays.asList(tArray));
@@ -180,9 +184,10 @@ public enum PojoUtility {
    * <pre>
    *     {@literal Set<String>} set = asSet(TreeSet::new, "Red", "White", "Blue");
    * </pre>
+   *
    * @param constructor The constructor or other function to convert a List to a Set
-   * @param array the items of type T, or an array of type T
-   * @param <T> The type of items in the Set
+   * @param array       the items of type T, or an array of type T
+   * @param <T>         The type of items in the Set
    * @return A Set of the type generated by {@code constructor}, containing the elements in {@code array}.
    */
   @SafeVarargs
@@ -191,23 +196,25 @@ public enum PojoUtility {
   }
 
   /**
-   * Use when a value should be null. For example, if a field should not be initialized, such as the ID of an entity 
+   * Use when a value should be null. For example, if a field should not be initialized, such as the ID of an entity
    * that is about to be created, or an end-time for an operation that has not yet ended.
+   *
    * @param object The object that should be null.
    * @throws ResponseException BAD_REQUEST (400) if the object is not null.
    */
   public static void confirmNull(@Nullable Object object) throws ResponseException {
     if (object != null) {
-	    //noinspection StringConcatenation
-	    throw new BadRequest400Exception("non-null value: " + object);
+      //noinspection StringConcatenation
+      throw new BadRequest400Exception("non-null value: " + object);
     }
   }
 
   /**
    * Use when a value should be null. For example, if a field should not be initialized, such as the ID of an entity
    * that is about to be created, or an end-time for an operation that has not yet ended.
+   *
    * @param object The object that should be null.
-   * @param label A String to identify the bad value, usually a property name, like ID.
+   * @param label  A String to identify the bad value, usually a property name, like ID.
    * @throws ResponseException BAD_REQUEST (400) if the object is not null.
    */
   public static void confirmNull(@Nullable Object object, String label) throws ResponseException {
@@ -218,11 +225,12 @@ public enum PojoUtility {
 
   /**
    * Confirms the two objects are equal. Uses Objects.equals().
+   *
    * @param expected The expected value
-   * @param actual The actual value
-   * @param <T> The type of each object
+   * @param actual   The actual value
+   * @param <T>      The type of each object
    * @throws ResponseException BAD_REQUEST (400) if the objects are not equal
-   * @see Objects#equals(Object, Object) 
+   * @see Objects#equals(Object, Object)
    */
   public static <T> void confirmEqual(T expected, T actual) throws ResponseException {
     if (!Objects.equals(actual, expected)) {
@@ -232,10 +240,11 @@ public enum PojoUtility {
 
   /**
    * Confirms the two objects are equal. Uses Objects.equals().
-   * @param message The message to use if the objects are not equal
+   *
+   * @param message  The message to use if the objects are not equal
    * @param expected The expected value
-   * @param actual The actual value
-   * @param <T> The type of each object
+   * @param actual   The actual value
+   * @param <T>      The type of each object
    * @throws ResponseException BAD_REQUEST (400) if the objects are not equal, using the specified message
    * @see Objects#equals(Object, Object)
    */
@@ -246,9 +255,10 @@ public enum PojoUtility {
   }
 
   /**
-   * Returns the String. Throws a ResponseException if the String is null or empty. 
+   * Returns the String. Throws a ResponseException if the String is null or empty.
    * The return value is usually not used, since this is just to test for valid data.
    * It returns the first parameter, so it may be used in function chaining.
+   *
    * @param s The String
    * @return s
    * @throws ResponseException BAD_REQUEST (400) if the String is null or empty
@@ -264,7 +274,8 @@ public enum PojoUtility {
    * Returns the String. Throws a ResponseException if the String is null or empty.
    * The return value is usually not used, since this is just to test for valid data.
    * It returns the first parameter, so it may be used in function chaining.
-   * @param s The String
+   *
+   * @param s     The String
    * @param label The label to describe the empty value in the exception message.
    * @return s
    * @throws ResponseException BAD_REQUEST (400) if the String is null or empty
@@ -279,9 +290,10 @@ public enum PojoUtility {
   /**
    * Convert a Collection of DTOs into a collection of the corresponding entities.
    * This convenience method isn't really very convenient, but I keep it around to remind me of how to do this kind of conversion.
+   *
    * @param inputList The list of DTOs
-   * @param <I> The Input DTO type
-   * @param <O> The Output entity type
+   * @param <I>       The Input DTO type
+   * @param <O>       The Output entity type
    * @return A list of entities of type O
    */
   public static <I, O> List<O> convertList(Collection<I> inputList, TypeReference<List<O>> typeReference) {
@@ -291,6 +303,7 @@ public enum PojoUtility {
   /**
    * Returns the String, or an empty String if the String is null.
    * The return value is usually not used, since this is just to test for valid data.
+   *
    * @param s The String
    * @return The original String, or an empty String if the original was empty. Never returns null.
    */

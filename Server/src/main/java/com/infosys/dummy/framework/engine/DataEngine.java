@@ -48,12 +48,16 @@ public class DataEngine {
     this.objectMapper = objectMapper;
   }
 
+  private static String dto(Object dto, String label) {
+    return String.format("%s.%s", dto.getClass().getSimpleName(), label);
+  }
+
   public MenuItemDto getMenuItemDto(final Integer id) {
     MenuItem menuItem = PojoUtility.findOrThrow404(menuItemRepository, id);
     return objectMapper.convertValue(menuItem, MenuItemDto.class);
   }
 
-//  @Cacheable(cacheNames = MENU_ITEM_CACHE)
+  //  @Cacheable(cacheNames = MENU_ITEM_CACHE)
   public List<MenuItemDto> getAllMenuItems() {
     return menuItemRepository
         .findAll()
@@ -62,7 +66,7 @@ public class DataEngine {
         .collect(Collectors.toList());
   }
 
-    @CacheEvict(cacheNames = MENU_ITEM_CACHE)
+  @CacheEvict(cacheNames = MENU_ITEM_CACHE)
   public Integer addOption(final Integer menuItemId, final MenuItemOptionDto optionDto) {
     PojoUtility.confirmNotEmpty(optionDto.getName()); // throws ResponseException
     PojoUtility.confirmNull(optionDto.getId(), "ID");
@@ -91,10 +95,6 @@ public class DataEngine {
     final Integer id = savedItem.getId();
     log.trace("added menuItem with id {}", id);
     return id;
-  }
-
-  private static String dto(Object dto, String label) {
-    return String.format("%s.%s", dto.getClass().getSimpleName(), label);
   }
 
   @CacheEvict(cacheNames = MENU_ITEM_CACHE)
@@ -142,7 +142,7 @@ public class DataEngine {
   @CacheEvict(cacheNames = MENU_ITEM_CACHE)
   public void deleteMenuItemById(final Integer menuItemId) {
     log.trace("Deleting menuItem with id {}", menuItemId);
-    
+
     if (!menuItemRepository.existsById(menuItemId)) {
       throw new NotFound404Exception(menuItemId.toString());
     }

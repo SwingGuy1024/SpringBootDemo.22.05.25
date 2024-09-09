@@ -54,9 +54,47 @@ public class AdminApiControllerTest {
 
   @Autowired
   private MenuItemOptionTestRepository menuItemOptionRepository;
-  
+
   @Autowired
   private DataEngine dataEngine;
+
+  private static MenuItemDto makeMenuItem() {
+    MenuItemOptionDto oliveOption = makeMenuItemOptionDto("olives", "0.30");
+    MenuItemOptionDto pepOption = makeMenuItemOptionDto("pepperoni", "0.40");
+
+    MenuItemDto menuItemDto = new MenuItemDto();
+    menuItemDto.setAllowedOptions(Arrays.asList(oliveOption, pepOption));
+    menuItemDto.setName("GoodItem");
+    menuItemDto.setItemPrice(new BigDecimal("0.50"));
+    return menuItemDto;
+  }
+
+  private static MenuItemOptionDto makeMenuItemOptionDto(String name, String price) {
+    MenuItemOptionDto option = new MenuItemOptionDto();
+    option.setName(name);
+    option.setDeltaPrice(new BigDecimal(price));
+    return option;
+  }
+
+  private static MenuItemDto createPizzaMenuItem() {
+    MenuItemDto menuItemDto = new MenuItemDto();
+    menuItemDto.setName("Pizza");
+    menuItemDto.setAllowedOptions(new LinkedList<>());
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("pepperoni", "0.30"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("sausage", "0.30"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("mushrooms", "0.15"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("bell peppers", "0.15"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("olives", "0.00"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("onions", "0.00"));
+    menuItemDto.setItemPrice(new BigDecimal("5.95"));
+    return menuItemDto;
+  }
+
+  private static boolean itemHasOptionName(MenuItem item, String optionName) {
+    return item.getAllowedOptions()
+        .stream()
+        .anyMatch(option -> Objects.equals(option.getName(), optionName));
+  }
 
   @Test
   public void testAddMenuItemBadInputEmptyOptionName() {
@@ -90,13 +128,14 @@ public class AdminApiControllerTest {
     assertThrows(NumberFormatException.class, () -> menuItemOption.setDeltaPrice(new BigDecimal("")));
   }
 
-  @Test public void testAddMenuItemMissingPrice() {
+  @Test
+  public void testAddMenuItemMissingPrice() {
     MenuItemDto menuItemDto = new MenuItemDto();
     MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
     menuItemDto.setAllowedOptions(Collections.singletonList(menuItemOption));
     menuItemDto.setName("BadItem");
     System.out.printf("Bad Price?:%s%n", menuItemDto); // NON-NLS
-    assertThrows(BadRequest400Exception.class, () ->  dataEngine.addMenuItemFromDto(menuItemDto));
+    assertThrows(BadRequest400Exception.class, () -> dataEngine.addMenuItemFromDto(menuItemDto));
   }
 
   @Test
@@ -120,24 +159,6 @@ public class AdminApiControllerTest {
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
   }
 
-  private static MenuItemDto makeMenuItem() {
-    MenuItemOptionDto oliveOption = makeMenuItemOptionDto("olives", "0.30");
-    MenuItemOptionDto pepOption = makeMenuItemOptionDto("pepperoni", "0.40");
-
-    MenuItemDto menuItemDto = new MenuItemDto();
-    menuItemDto.setAllowedOptions(Arrays.asList(oliveOption, pepOption));
-    menuItemDto.setName("GoodItem");
-    menuItemDto.setItemPrice(new BigDecimal("0.50"));
-    return menuItemDto;
-  }
-
-  private static MenuItemOptionDto makeMenuItemOptionDto(String name, String price) {
-    MenuItemOptionDto option = new MenuItemOptionDto();
-    option.setName(name);
-    option.setDeltaPrice(new BigDecimal(price));
-    return option;
-  }
-
   // Tests of addMenuItemOption()
 
   @Test
@@ -152,14 +173,15 @@ public class AdminApiControllerTest {
     try {
       final ResponseEntity<String> stringResponseEntity = adminApiController.addMenuItemOption(id, optionDto);
       fail(stringResponseEntity.toString());
-    } catch (BadRequest400Exception ignored) { }
+    } catch (BadRequest400Exception ignored) {}
   }
+
 
   private void isNotFound(int id, MenuItemOptionDto optionDto) {
     try {
       final ResponseEntity<String> stringResponseEntity = adminApiController.addMenuItemOption(id, optionDto);
       fail(stringResponseEntity.toString());
-    } catch (NotFound404Exception ignored) { }
+    } catch (NotFound404Exception ignored) {}
   }
 
   // Test of deleteOption()
@@ -173,15 +195,16 @@ public class AdminApiControllerTest {
   public void testDeleteOption() throws ResponseException {
     MenuItemDto menuItemDto = createPizzaMenuItem();
     ResponseEntity<String> responseEntity = adminApiController.addMenuItem(menuItemDto);
-    final int id = PojoUtility.extractInt(responseEntity); //.parseInt(Objects.requireNonNull(responseEntity.getBody()));
+    final int id = PojoUtility.extractInt(responseEntity); //.parseInt(Objects.requireNonNull(responseEntity.getBody
+    // ()));
     System.out.printf("Body: <%s>%n", id);
 
     MenuItem item = findOrThrow404(menuItemRepository, id);
     Hibernate.initialize(item);
     Set<String> nameSet = item.getAllowedOptions()
-            .stream()
-            .map(MenuItemOption::getName)
-            .collect(Collectors.toSet());
+        .stream()
+        .map(MenuItemOption::getName)
+        .collect(Collectors.toSet());
     assertThat(nameSet, hasItems("pepperoni", "sausage", "mushrooms", "bell peppers", "olives", "onions"));
 
     MenuItemOption removedOption = item.getAllowedOptions().iterator().next();
@@ -202,27 +225,7 @@ public class AdminApiControllerTest {
     item = findOrThrow404(menuItemRepository, id);
     assertFalse(itemHasOptionName(item, removedName));
 
-    assertThrows(NotFound404Exception.class, () ->findOrThrow404(menuItemOptionRepository, removedId));
-  }
-
-  private static MenuItemDto createPizzaMenuItem() {
-    MenuItemDto menuItemDto = new MenuItemDto();
-    menuItemDto.setName("Pizza");
-    menuItemDto.setAllowedOptions(new LinkedList<>());
-    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("pepperoni", "0.30"));
-    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("sausage", "0.30"));
-    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("mushrooms", "0.15"));
-    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("bell peppers", "0.15"));
-    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("olives", "0.00"));
-    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("onions", "0.00"));
-    menuItemDto.setItemPrice(new BigDecimal("5.95"));
-    return menuItemDto;
-  }
-
-  private static boolean itemHasOptionName(MenuItem item, String optionName) {
-    return item.getAllowedOptions()
-            .stream()
-            .anyMatch(option -> Objects.equals(option.getName(), optionName));
+    assertThrows(NotFound404Exception.class, () -> findOrThrow404(menuItemOptionRepository, removedId));
   }
 
   @AfterEach

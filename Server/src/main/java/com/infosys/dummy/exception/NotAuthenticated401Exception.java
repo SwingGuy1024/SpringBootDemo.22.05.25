@@ -8,15 +8,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * <p>Date: 1/11/21
  * <p>Time: 10:42 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
 public class NotAuthenticated401Exception extends ResponseException {
-  public NotAuthenticated401Exception(final String message) {
-    super(message);
-  }
+  public NotAuthenticated401Exception(final String message) { super(message); }
 
-  public NotAuthenticated401Exception(final String message, final Throwable cause) {
-    super(message, cause);
-  }
+  public NotAuthenticated401Exception(final String message, final Throwable cause) { super(message, cause); }
 }

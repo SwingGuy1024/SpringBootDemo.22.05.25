@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  * <p>Date: 2/19/18
  * <p>Time: 11:46 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 public enum ResponseUtility {
   ;
@@ -40,12 +40,13 @@ public enum ResponseUtility {
    *    return serveCreatedEntity(() -> dataEngine.addOption(menuItemId, optionDto)); // addOption() returns Integer
    *  }
    * </pre>
+   *
    * @param method The service method that does the work of the service, and returns an id as a Number (an Integer or
-   *              Long) @return A {@literal ResponseEntity<String>} holding the value of the id returned by the
-   *              Supplier's get() method, converted to a String.
+   *               Long) @return A {@literal ResponseEntity<String>} holding the value of the id returned by the
+   *               Supplier's get() method, converted to a String.
    * @throws ResponseException if the method fails
    * @see #serve(HttpStatus, Supplier)
-   * @see Supplier#get() 
+   * @see Supplier#get()
    */
   public static ResponseEntity<String> serveCreatedEntity(Supplier<Number> method) throws ResponseException {
     assert method != null;
@@ -54,8 +55,9 @@ public enum ResponseUtility {
 
   /**
    * Serve the data, using HttpStatus.OK as the response if successful. This method delegates the work to serve().
-   *
+   * <p>
    * Note: When the supplier returns nothing, the implementing method should return Void instead of void.
+   *
    * @param <T>    The return type
    * @param method The service method that does the work of the service, and returns an instance of type T
    * @return A {@literal ResponseEntity<T>} holding the value returned by the Supplier's get() method.
@@ -66,23 +68,23 @@ public enum ResponseUtility {
   public static <T> ResponseEntity<T> serveOK(Supplier<T> method) throws ResponseException {
     return serve(HttpStatus.OK, method);
   }
-  
+
   public static ResponseEntity<String> serveEmptyOK(Runnable method) throws ResponseException {
     return serveEmpty(HttpStatus.OK, method);
   }
 
   /**
-   * <p>Serve the data, specifying the HttpStatus to be used if successful, and a Supplier to execute, which 
+   * <p>Serve the data, specifying the HttpStatus to be used if successful, and a Supplier to execute, which
    * will usually be written as a lambda expression by the calling method. This will call the Supplier's
    * get() method inside a try/catch block. If get() completes successfully, this method will return
-   * the result packed inside a ResponseEntity object, using the specified successStatus. If get() throws an 
+   * the result packed inside a ResponseEntity object, using the specified successStatus. If get() throws an
    * Exception, this method will return a ResponseEntity with the proper error HttpStatus and error message.
    * </p><p>
    * Since the get() method is not declared to return a checked Exception, the provided lambda expression need only
    * throw a ResponseException on failure. The error handling portion of this method will use the HttpStatus specified
    * in the ResponseException to generate the ResponseEntity.
    * </p><p>
-   * This allows the developer to implement functional part of the service method inside a lambda expression without 
+   * This allows the developer to implement functional part of the service method inside a lambda expression without
    * bothering with the boilerplate code used to package the successful response or handle any error.
    * </p><p>
    * <strong>Example:</strong><br>
@@ -99,13 +101,14 @@ public enum ResponseUtility {
    *     });
    *   }
    * </pre>
-   * @param <T> The return type. 
+   *
+   * @param <T>           The return type.
    * @param successStatus The status to use if the Supplier's get() method (the lambda expression) completes
    *                      successfully.
-   * @param method The service method that does the work of the service, and returns an instance of type T
+   * @param method        The service method that does the work of the service, and returns an instance of type T
    * @return A {@literal ResponseEntity<T>} holding the value returned by the Supplier's get() method.
    * @throws ResponseException if the method fails
-   * @see Supplier#get() 
+   * @see Supplier#get()
    * @see ResponseException
    */
   public static <T> ResponseEntity<T> serve(HttpStatus successStatus, Supplier<T> method) throws ResponseException {
@@ -116,7 +119,7 @@ public enum ResponseUtility {
       // This block, which seems to do nothing, prevents the exception from getting handled as a RuntimeException, 
       // which generates a status code of 500.
       throw e;
-      
+
       // In this next block, add any exceptions that may get thrown by methods we call, which are due to bad input data. 
       // For example, ValidationExceptions and NumberFormat exceptions are both bad input. If you run into any more,
       // add them here. 
@@ -135,10 +138,11 @@ public enum ResponseUtility {
    * calling method. This will call the Runnable's run() method inside a try/catch block. If run() completes
    * successfully, this method will return a ResponseEntity object with the reasonPhrase of the specified
    * successStatus. If run() throws an Exception, this method will return a ResponseEntity with the proper
-   * error HttpStatus and error message.</p> 
+   * error HttpStatus and error message.</p>
+   *
    * @param successStatus The status to use if the Runnable's run() method (the lambda expression) completes
    *                      successfully.
-   * @param method The service method that does the work of the service, and returns an instance of type T
+   * @param method        The service method that does the work of the service, and returns an instance of type T
    * @return
    * @throws ResponseException
    */
@@ -147,7 +151,7 @@ public enum ResponseUtility {
     method.run();
     return serve(successStatus, successStatus::getReasonPhrase);
   }
-  
+
   @SuppressWarnings("unused")
   public static void logHeaders(HttpServletRequest request, String label) {
     log.debug("logHeaders from {}", label);
@@ -159,7 +163,7 @@ public enum ResponseUtility {
     log.debug("logHeaders from {}", label);
     logHeaders(request::getHeaderNames, request::getHeader);
   }
-  
+
   public static void logHeaders(Iterable<String> getNames, Function<String, String> getName) {
     if (log.isDebugEnabled()) {
       Iterator<String> headerNames = getNames.iterator();
@@ -173,11 +177,18 @@ public enum ResponseUtility {
       }
     }
   }
-  
+
   public static <E> Iterator<E> asIterator(Enumeration<E> e) {
     return new Iterator<E>() {
-      @Override public boolean hasNext() { return e.hasMoreElements();}
-      @Override public E next() { return e.nextElement();}
+      @Override
+      public boolean hasNext() {
+        return e.hasMoreElements();
+      }
+
+      @Override
+      public E next() {
+        return e.nextElement();
+      }
     };
   }
 

@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
  * <p>Date: 3/1/21
  * <p>Time: 12:00 AM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 public enum WebUtils {
   ;

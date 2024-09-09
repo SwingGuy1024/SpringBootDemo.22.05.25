@@ -1,8 +1,6 @@
 package com.infosys.dummy.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.*;
@@ -10,15 +8,13 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.LinkedList;
 
 /**
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 2/19/18
  * <p>Time: 9:42 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 @Entity
 public class MenuItemOption implements Serializable {
@@ -74,8 +70,12 @@ public class MenuItemOption implements Serializable {
   @Override
   public boolean equals(final Object o) {
 
-    if (this == o) { return true; }
-    if (!(o instanceof MenuItemOption)) { return false; } // implicitly checks for null
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MenuItemOption)) {
+      return false;
+    } // implicitly checks for null
 
     final MenuItemOption that = (MenuItemOption) o;
 
@@ -93,7 +93,7 @@ public class MenuItemOption implements Serializable {
     //noinspection StringConcatenation,MagicCharacter
     return "MenuItemOption{" +
         "id=" + id +
-        ", menuItemId="+(menuItem ==null? "<none>" : menuItem.getId())+ // We don't print the menuItem, to avoid an infinite loop.
+        ", menuItemId=" + (menuItem == null ? "<none>" : menuItem.getId()) + // We don't print the menuItem, to avoid an infinite loop.
         ", deltaPrice=" + deltaPrice +
         ", name='" + name + '\'' +
         '}';

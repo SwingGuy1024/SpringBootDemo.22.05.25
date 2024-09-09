@@ -5,7 +5,7 @@ package com.infosys.dummy.exception;
  * <p>Date: 2/28/21
  * <p>Time: 10:05 PM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 public enum ExceptionUtils {
   ;

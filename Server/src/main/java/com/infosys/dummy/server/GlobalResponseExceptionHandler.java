@@ -48,7 +48,7 @@ import java.time.format.DateTimeFormatter;
  *   "path" : "/demo/admin/menuItem/addOption/"
  * }
  * </pre>
- * 
+ * <p>
  * Logs ResponseExceptions at Info, without a stack trace.
  * Logs other RuntimeExceptions at Error, with a stack trace.
  * The time zone used in generating the timestamp is the system default time zone, but may be changes setting the
@@ -57,14 +57,14 @@ import java.time.format.DateTimeFormatter;
  *   # Property value taken from java.time.ZoneId.getAvailableZoneIds()
  *   my-app.zoneId=America/Argentina/Buenos_Aires
  * </pre>
- * 
- * Time zones include {@code SHORT_IDS} declared in java.time.ZoneId, but are not limited to those. 
+ * <p>
+ * Time zones include {@code SHORT_IDS} declared in java.time.ZoneId, but are not limited to those.
  * Call {@code ZoneId.getAvailableZoneIds()} for a comprehensive list.
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 2/15/21
  * <p>Time: 8:12 AM
  *
- * @author Miguel Mu\u00f1oz
+ * @author Miguel Muñoz
  */
 @SuppressWarnings("unused") // Some of these get called only by the Spring framework, the IDE will think they're unused.
 @ControllerAdvice
@@ -73,7 +73,7 @@ public class GlobalResponseExceptionHandler
   private static final Logger log = LoggerFactory.getLogger(GlobalResponseExceptionHandler.class);
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
-  
+
   // TODO: Set up ConfigurationProperties
   // todo  https://docs.spring.io/spring-boot/docs/2.4.1/reference/html/appendix-configuration-metadata.html#configuration-metadata-annotation-processor
   private static final String ZONE_ID_PROPERTY = "my-app.zoneId";
@@ -98,10 +98,41 @@ public class GlobalResponseExceptionHandler
     return ZoneId.systemDefault();
   }
 
+  private static String extractPath(final WebRequest webRequest) {
+    NativeWebRequest nativeWebRequest = (NativeWebRequest) webRequest;
+    final HttpServletRequest httpServletRequest = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
+    if (httpServletRequest != null) {
+      return httpServletRequest.getRequestURI();
+    }
+    //noinspection HardCodedStringLiteral
+    return "(unknown)"; // Shouldn't happen
+  }
+
+  /**
+   * Log a standard error message including the request path and the error message.
+   *
+   * @param throwable The Exception or Error
+   * @param request   The WebRequest, which holds the original request path
+   */
+  private static void logStandardMessage(Throwable throwable, WebRequest request) {
+    // On ResponseException, and its status is < 500, it's not caused by a bug, so we just log the message and path.
+    // If it's not, it's a bug, so we include a stack trace.
+    if (throwable instanceof ResponseException && ((ResponseException) throwable).getHttpStatus().value() < 500) {
+      if (log.isInfoEnabled()) {
+        log.info("Error processing request at {}", extractPath(request));
+        log.info(((ResponseException) throwable).getHttpStatus().toString());
+        log.info(throwable.getMessage());
+      }
+    } else if (log.isErrorEnabled()) {
+      log.error("Error processing request at {}:", extractPath(request), throwable);
+    }
+  }
+
   /**
    * This method fills in a ResponseBody when a ResponseException is thrown. It also logs any caught exceptions.
    * It gets called by the SpringFramework.
-   * @param ex The ResponseException
+   *
+   * @param ex      The ResponseException
    * @param request The WebRequest
    * @return A ResponseEntity with a useful error message.
    */
@@ -116,9 +147,10 @@ public class GlobalResponseExceptionHandler
   /**
    * This method gives me useful (but wordy) error messages when the Spring Server code rejects an invalid DTO before
    * it even reaches my code. Without this, these errors return no error message at all.
-   * @param ex The exception
+   *
+   * @param ex      The exception
    * @param headers The headers
-   * @param status The HttpStatus
+   * @param status  The HttpStatus
    * @param request The WebRequest
    * @return A ResponseEntity with a useful error message
    */
@@ -251,35 +283,6 @@ public class GlobalResponseExceptionHandler
     log.trace("(untested) handleAsyncRequestTimeoutException");
     logStandardMessage(ex, request);
     return handleExceptionInternal(ex, new ResponseBody(ex, status, request), headers, status, request);
-  }
-
-  private static String extractPath(final WebRequest webRequest) {
-    NativeWebRequest nativeWebRequest = (NativeWebRequest) webRequest;
-    final HttpServletRequest httpServletRequest = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
-    if (httpServletRequest != null) {
-      return httpServletRequest.getRequestURI();
-    }
-    //noinspection HardCodedStringLiteral
-    return "(unknown)"; // Shouldn't happen
-  }
-
-  /**
-   * Log a standard error message including the request path and the error message.
-   * @param throwable The Exception or Error
-   * @param request The WebRequest, which holds the original request path
-   */
-  private static void logStandardMessage(Throwable throwable, WebRequest request) {
-    // On ResponseException, and its status is < 500, it's not caused by a bug, so we just log the message and path.
-    // If it's not, it's a bug, so we include a stack trace.
-    if (throwable instanceof ResponseException && ((ResponseException)throwable).getHttpStatus().value() < 500) {
-      if (log.isInfoEnabled()) {
-        log.info("Error processing request at {}", extractPath(request));
-        log.info(((ResponseException)throwable).getHttpStatus().toString());
-        log.info(throwable.getMessage());
-      }
-    } else if (log.isErrorEnabled()) {
-      log.error("Error processing request at {}:", extractPath(request), throwable);
-    }
   }
 
   private class ResponseBody {
